@@ -1,6 +1,10 @@
 import datetime
 import math
+import os
 from normalize_time import iso_to_unix
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Set up test for passing input from Strava for now.
 def datetime_to_iso_test():
@@ -21,3 +25,12 @@ def datetime_to_iso_test():
 
     # Return truncated epoch time in milliseconds.
     return after
+
+
+# Set up auth headers for base and whatever else is needed. 
+def with_auth_headers(headers: dict = {}) -> dict:
+    AUTH_TOKEN = os.getenv("AUTH_TOKEN")
+    auth_headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+
+    return {**headers, **auth_headers}
+
