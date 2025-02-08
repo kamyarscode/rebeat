@@ -41,6 +41,14 @@ If using VsCode, make sure you set the right environment when running.
 Add your auth token to a local `.env` file stored in root project directory for now.  
 Example:  
 `AUTH_TOKEN=B.......`
+
+#### Start API Server:
+Once env is set up, navigate to `backend/app.py` and start with VsCode or:
+```bash
+cd backend
+python ./app.py
+```
+
 # To Do:
 
 - Add way to support workouts longer than 100 minutes.
