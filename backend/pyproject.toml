@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rebeat"
+version = "0.1.0"
+authors = [
+    {name = "Kamyar R", email = "notPublicYet@gmail.com"},
+]
+
+description = "Add music from workouts to playlist"
+readme = "README.md"
+requires-python = ">=3.11"
+keywords = ["spotify", "music", "workout", "playlist"]
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "Development Status :: 3 - Alpha",
+
+]
+dependencies = [
+    "requests>=2.32.3",
+    "python-dotenv>=1.0.1",
+    "fastapi>=0.115.8",
+    "python-dateutil>=2.9.0.post0"
+]
+
+# dynamic = ["version"]
