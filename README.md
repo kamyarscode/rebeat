@@ -27,19 +27,23 @@ Clone the repo in desired directory:
 #### Set up Python venv and install rebeat.
 
 ```bash
-# Navigate to where you cloned the project
-cd {dir}/rebeat/backend
+# Navigate to the backend directory
+cd ./backend
+
 # Create venv
 python -m venv .rebeat
-# Activate venv
-.\.rebeat\Scripts\activate - Windows
-OR
-source .rebeat/bin/activate - Linux/MacOS
+
+# Activate venv (Windows)
+.\.rebeat\Scripts\activate
+# OR Activate venv (Linux/MacOS)
+source .rebeat/bin/activate
+
 # Install project in dev mode to see changes
 pip install -e .
 ```
 
 If using VsCode, make sure you set the right environment when running.
+`CMD + SHIFT + P` -> `Python: Select Interpreter` -> `.rebeat/bin/python`
 
 #### Auth Token:
 
