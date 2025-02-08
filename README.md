@@ -24,13 +24,13 @@ Clone the repo in desired directory:
 #### Set up Python venv and install rebeat.
 ```bash
 # Navigate to where you cloned the project
-cd {dir}/rebeat
+cd {dir}/rebeat/backend
 # Create venv
 python -m venv .rebeat
 # Activate venv
-.\.rebeat\Scripts\activate
-# Navigate to backend dir where `pyproject.toml` is located
-cd backend
+.\.rebeat\Scripts\activate - Windows
+OR
+.rebeat/bin/activate - Linux/MacOS
 # Install project in dev mode to see changes
 pip install -e .
 ```
