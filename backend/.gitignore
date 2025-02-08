@@ -1,0 +1,5 @@
+.env
+notes.md
+.rebeat
+src/__pycache__/
+src/rebeat.egg-info/

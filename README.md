@@ -30,7 +30,7 @@ python -m venv .rebeat
 # Activate venv
 .\.rebeat\Scripts\activate - Windows
 OR
-.rebeat/bin/activate - Linux/MacOS
+source .rebeat/bin/activate - Linux/MacOS
 # Install project in dev mode to see changes
 pip install -e .
 ```
