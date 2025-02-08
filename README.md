@@ -47,7 +47,7 @@ If using VsCode, make sure you set the right environment when running.
 
 #### Auth Token:
 
-Add your auth token to a local `.env` file stored in root project directory for now.  
+Add your auth token to a local `.env` file stored in `rebeat/backend` directory for now.  
 Example:  
 `AUTH_TOKEN=B.......`
 
