@@ -42,8 +42,9 @@ def get_recently_played_using_time(after):
     response_json = response.json()
     
     # Map function to get track names from response.
-    recently_played_song_names = map(lambda x: x['track']['name'], response_json['items'])
+    recently_played_song_names = list(map(lambda x: x['track']['name'], response_json['items']))
+    recently_played_song_id = list(map(lambda x: x['track']['id'], response_json['items']))
 
-    # Return list of song names.
-    return recently_played_song_names
+    # Return list of song names for testing, return id for actual use.
+    return recently_played_song_names, recently_played_song_id
 
