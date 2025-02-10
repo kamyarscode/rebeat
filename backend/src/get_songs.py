@@ -6,7 +6,24 @@ def get_recently_played_using_time(after):
 
     # Get time from source ie Strava. Leave now for testing.
     #after = datetime_to_iso_test()
+    """
+    Get recently played songs.
+    GET https://api.spotify.com/v1/me/player/recently-played
 
+    Parameters/Args:
+        limit: int - The maximum number of items to return. Default: 20. Minimum: 1. Maximum: 50.
+
+        after: int - A Unix timestamp in milliseconds. Returns all items after (but not including) this cursor position. 
+                    If after is specified, before must not be specified.
+                    Example: after=1484811043508
+
+        before: int - A Unix timestamp in milliseconds. Returns all items before (but not including) this cursor position. 
+                    If before is specified, after must not be specified.
+
+    Returns:
+        list: A list of song names.
+
+    """
     SPOTIFY_RECENTLY_PLAYED_URL = "https://api.spotify.com/v1/me/player/recently-played"
 
     # TODO: Add docs here to explain "after" later
