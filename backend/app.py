@@ -43,6 +43,7 @@ def exchange_code_for_access_token(code: str) -> str:
 
 
 # Begins the authorization process. Redirects to spotify's authorization page for user consent.
+# More info at: https://developer.spotify.com/documentation/web-api/tutorials/code-flow
 @app.get("/login")
 def login():
     url = "https://accounts.spotify.com/authorize"
