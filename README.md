@@ -6,6 +6,8 @@ Adds songs listened to during activities into a playlist.
 
 Live at [rebeat.onrender.com](https://rebeat.onrender.com)
 
+Use `./dev.sh` to run the backend and frontend concurrently.
+
 ## Frontend
 
 Vite + React + TypeScript just to send you to the auth flow and look pretty.
