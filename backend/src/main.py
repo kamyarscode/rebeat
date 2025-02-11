@@ -1,12 +1,12 @@
 from get_songs import get_recently_played_using_time
 from helpers import datetime_to_iso_test
 from dotenv import load_dotenv
-from dateutil import parser
-
+from build_playlist import create_playlist, add_songs
 import datetime
 import pprint
 import  math
 import os
+import time
 
 
 load_dotenv()
@@ -14,7 +14,16 @@ load_dotenv()
 # Take time now, convert to strava format(iso 8601), then convert to unix timestamp. Pass that in.
 if __name__ == "__main__":
 
+    # Convert time
     after = datetime_to_iso_test()
-    AUTH_TOKEN = os.getenv("AUTH_TOKEN")
-    name = map(lambda x: x['track']['name'], get_recently_played_using_time(AUTH_TOKEN, after)['items'])
-    pprint.pprint(list(name))
+    # Get songs using time
+    song_names, song_ids = get_recently_played_using_time(after)
+    pprint.pprint(song_ids)
+
+
+    # Create playlist test:
+    playlist_id = create_playlist(user_id="kamandgetit", playlist_name="Greetings from VsCode", playlist_description="Definitely a test!", public=True)
+    print (playlist_id)
+
+    # Add songs to playlist
+    print (add_songs(recently_played_songs_id_array=list(song_ids), playlist_id=playlist_id))
