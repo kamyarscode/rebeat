@@ -10,8 +10,7 @@ from requests import post
 
 app = FastAPI()
 
-
-VERIFICATION_TOKEN = "placeholder"
+VERIFICATION_TOKEN = generate_random_string(16)
 
 # Root route
 @app.get("/")
@@ -23,7 +22,9 @@ async def root():
 client_id = os.getenv("CLIENT_ID")
 client_secret = os.getenv("CLIENT_SECRET")
 redirect_uri = "http://localhost:8000/callback"
-
+STRAVA_CLIENT_ID = os.getenv("STRAVA_CLIENT_ID")
+STRAVA_CLIENT_SECRET = os.getenv("STRAVA_CLIENT_SECRET")
+CALLBACK_URL = os.getenv("STRAVA_CALLBACK_URL")
 
 # Helper to exchange the code for an access token via spotify's API
 def exchange_code_for_access_token(code: str) -> str:
@@ -98,7 +99,14 @@ async def callback(request: Request):
 
 # Strava GET request to verify the callback URL.
 @app.get("/strava/webhook")
-def verify_webhook( hub_mode: str = Query(...), hub_challenge: str = Query(...), hub_verify_token: str = Query(...)):
+def verify_webhook(request: Request):
+
+    hub_mode = request.query_params.get("hub.mode")
+    hub_challenge = request.query_params.get("hub.challenge")
+    hub_verify_token = request.query_params.get("hub.verify_token")
+
+    print (hub_mode, hub_challenge, hub_verify_token)
+
     """
     Strava will send a GET request to verify the callback URL.
     Check if tokens match and respond back with hub.challenge.
@@ -119,31 +127,38 @@ def verify_webhook( hub_mode: str = Query(...), hub_challenge: str = Query(...),
     
     return {"error": "Invalid verification token"}
 
-# Strava POST request to receive activity updates.
-@app.post("/strava/webhook")
-async def receive_strava_updates(request: Request):
-    """
-    Receive activity updates from Strava.
-
-    Args:   
-        request: Request - FastAPI request object.
-
-    Returns:
-        dict: Status message.
-    """
-    payload = await request.json()
-    print("Received Strava update:", payload)  # See the update for now.
-
-    return {"status": "Received"}
-
 # Connect to Strava endpoint, kick things off with subscribe_to_strava.
-@app.get("/strava/connect")
+@app.get("/strava/subscribe")
 def connect_to_strava():
     """
     Trigger the Strava subscription process when a user visits this endpoint.
     """
-    subscribe_to_strava(CLIENT_ID="", CLIENT_SECRET="", CALLBACK_URL="", VERIFICATION_TOKEN=VERIFICATION_TOKEN) 
+
+    subscribe_to_strava(STRAVA_CLIENT_ID=STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET=STRAVA_CLIENT_SECRET, CALLBACK_URL=CALLBACK_URL, VERIFICATION_TOKEN=VERIFICATION_TOKEN)
+    
     return {"message": "Subscription request sent to Strava"}
+
+# TODO: Add auth flow for strava. 
+@app.get("/strava/login")
+def login_with_strava():
+    """
+    Redirects the user to Strava's OAuth authorization page.
+    """
+    
+    STRAVA_AUTH_URL = "https://www.strava.com/oauth/authorize"
+    STRAVA_CLIENT_ID = os.getenv("STRAVA_CLIENT_ID")
+    STRAVA_REDIRECT_URI = os.getenv("STRAVA_REDIRECT_URI")
+    STRAVA_SCOPE = "activity:read"
+    
+    params = {
+        "client_id": STRAVA_CLIENT_ID,
+        "response_type": "code",
+        "redirect_uri": STRAVA_REDIRECT_URI,
+        "approval_prompt": "auto",
+        "scope": STRAVA_SCOPE
+    }
+    
+    return RedirectResponse(f"{STRAVA_AUTH_URL}?{urlencode(params)}")
 
 
 # Run the app
