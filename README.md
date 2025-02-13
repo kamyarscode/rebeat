@@ -78,3 +78,4 @@ python ./app.py
 ## To Do:
 
 - Add way to support workouts longer than 100 minutes.
+- Add option for user to add notes to private/public notes.
