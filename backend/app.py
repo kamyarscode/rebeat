@@ -162,6 +162,9 @@ def login_with_strava():
 
 @app.get("/strava/callback")
 def strava_callback(request: Request):
+    """
+    Redirects the user to callback endpoint and returns token for now.
+    """
 
     access_token_url = "https://www.strava.com/oauth/token"
     params = {
@@ -170,8 +173,9 @@ def strava_callback(request: Request):
         "code": request.query_params.get("code"),
         "grant_type": "authorization_code"
     }
+    
     response = post(access_token_url, data=params)
-    print (response.json())
+
     return response.json()
 
 
