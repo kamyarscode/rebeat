@@ -22,9 +22,12 @@ async def root():
 client_id = os.getenv("CLIENT_ID")
 client_secret = os.getenv("CLIENT_SECRET")
 redirect_uri = "http://localhost:8000/callback"
+
+CALLBACK_URL = os.getenv("STRAVA_CALLBACK_URL")
+
 STRAVA_CLIENT_ID = os.getenv("STRAVA_CLIENT_ID")
 STRAVA_CLIENT_SECRET = os.getenv("STRAVA_CLIENT_SECRET")
-CALLBACK_URL = os.getenv("STRAVA_CALLBACK_URL")
+STRAVA_REDIRECT_URI = "http://localhost:8000/strava/callback"
 
 # Helper to exchange the code for an access token via spotify's API
 def exchange_code_for_access_token(code: str) -> str:
@@ -144,12 +147,9 @@ def login_with_strava():
     """
     Redirects the user to Strava's OAuth authorization page.
     """
-    
     STRAVA_AUTH_URL = "https://www.strava.com/oauth/authorize"
-    STRAVA_CLIENT_ID = os.getenv("STRAVA_CLIENT_ID")
-    STRAVA_REDIRECT_URI = os.getenv("STRAVA_REDIRECT_URI")
     STRAVA_SCOPE = "activity:read"
-    
+
     params = {
         "client_id": STRAVA_CLIENT_ID,
         "response_type": "code",
@@ -159,6 +159,20 @@ def login_with_strava():
     }
     
     return RedirectResponse(f"{STRAVA_AUTH_URL}?{urlencode(params)}")
+
+@app.get("/strava/callback")
+def strava_callback(request: Request):
+
+    access_token_url = "https://www.strava.com/oauth/token"
+    params = {
+        "client_id": STRAVA_CLIENT_ID,
+        "client_secret": STRAVA_CLIENT_SECRET,
+        "code": request.query_params.get("code"),
+        "grant_type": "authorization_code"
+    }
+    response = post(access_token_url, data=params)
+    print (response.json())
+    return response.json()
 
 
 # Run the app
