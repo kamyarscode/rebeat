@@ -79,3 +79,4 @@ python ./app.py
 
 - Add way to support workouts longer than 100 minutes.
 - Add option for user to add notes to private/public notes.
+- Better functionality to deliver new songs and avoid repeats.
