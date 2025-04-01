@@ -34,3 +34,10 @@ def get_db():
     finally:
         db.close()
 
+
+# Function to add user token to database
+def add_user_token(db: Session, user_token: UserToken):
+    db.add(user_token)
+    db.commit()
+    db.refresh(user_token)
+    return user_token
