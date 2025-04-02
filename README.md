@@ -81,3 +81,4 @@ python ./app.py
 - Add option for user to add notes to private/public notes.
 - Better functionality to deliver new songs and avoid repeats.
 - Add map of when/where each song is played.
+- Add database support
