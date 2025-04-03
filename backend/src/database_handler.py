@@ -41,3 +41,33 @@ def add_user_token(db: Session, user_token: UserToken):
     db.commit()
     db.refresh(user_token)
     return user_token
+
+
+# Define these tomorrow
+def save_token(db: Session, user_id: str, app_name: str, access_token: str, refresh_token: str):
+    token = UserToken(user_id=user_id, app_name=app_name, access_token=access_token, refresh_token=refresh_token)
+    db.add(token)
+    db.commit()
+
+    db.refresh(token)
+    return token
+
+def get_token(db: Session, user_id: str, app_name: str):
+    return db.query(UserToken).filter(UserToken.user_id == user_id, UserToken.app_name == app_name).first()
+
+def update_token(db: Session, user_id: str, app_name: str, new_access_token: str):
+    token = get_token(db, user_id, app_name)
+    if token:
+        token.access_token = new_access_token
+        db.commit()
+
+        db.refresh(token)
+        return token
+    
+def delete_token(db: Session, user_id: str, app_name: str):
+    token = get_token(db, user_id, app_name)
+    if token:
+        db.delete(token)
+        db.commit()
+        return True
+    return False
