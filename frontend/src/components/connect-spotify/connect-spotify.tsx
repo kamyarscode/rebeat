@@ -10,7 +10,11 @@ export const ConnectSpotify = ({
   onClick?: () => void;
 }) => {
   return (
-    <Button className={cn("w-full", className)} onClick={onClick}>
+    <Button
+      variant="secondary"
+      className={cn("w-full", className)}
+      onClick={onClick}
+    >
       <Icon className="mr-1" />
       Connect Spotify
     </Button>
