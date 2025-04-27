@@ -13,9 +13,9 @@ function App() {
           <h1 className="text-2xl font-bold animate-in fade-in slide-in-from-bottom-4 duration-1000 ease-out-quart">
             Welcome to Rebeat
           </h1>
-          <p className="text-sm text-muted-foreground animate-in fade-in slide-in-from-bottom-4 delay-100 fill-mode-backwards ease-out-quart duration-1000">
-            Rebeat will add a playlist of the music you listened to on your runs
-            to your strava activities.
+          <p className="text-base text-muted-foreground animate-in fade-in slide-in-from-bottom-4 delay-100 fill-mode-backwards ease-out-quart duration-1000">
+            Turn your runs into playlists you can revisit right from Strava.
+            Connect your accounts to get started.
           </p>
         </div>
         <div className=" flex flex-col gap-2 sm:flex-row">
