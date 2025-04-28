@@ -2,11 +2,7 @@ from get_songs import get_recently_played_using_time
 from helpers import datetime_to_iso_test
 from dotenv import load_dotenv
 from build_playlist import create_playlist, add_songs
-import datetime
 import pprint
-import  math
-import os
-import time
 
 
 load_dotenv()
@@ -20,10 +16,18 @@ if __name__ == "__main__":
     song_names, song_ids = get_recently_played_using_time(after)
     pprint.pprint(song_ids)
 
-
     # Create playlist test:
-    playlist_id = create_playlist(user_id="kamandgetit", playlist_name="Greetings from VsCode", playlist_description="Definitely a test!", public=True)
-    print (playlist_id)
+    playlist_id = create_playlist(
+        user_id="kamandgetit",
+        playlist_name="Greetings from VsCode",
+        playlist_description="Definitely a test!",
+        public=True,
+    )
+    print(playlist_id)
 
     # Add songs to playlist
-    print (add_songs(recently_played_songs_id_array=list(song_ids), playlist_id=playlist_id))
+    print(
+        add_songs(
+            recently_played_songs_id_array=list(song_ids), playlist_id=playlist_id
+        )
+    )

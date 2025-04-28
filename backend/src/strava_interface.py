@@ -1,6 +1,9 @@
 import requests
 
-def subscribe_to_strava(STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, CALLBACK_URL, VERIFICATION_TOKEN):
+
+def subscribe_to_strava(
+    STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, CALLBACK_URL, VERIFICATION_TOKEN
+):
     """
     Function to create a subscription with Strava.
 
@@ -19,15 +22,14 @@ def subscribe_to_strava(STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, CALLBACK_URL, VE
         "client_id": STRAVA_CLIENT_ID,
         "client_secret": STRAVA_CLIENT_SECRET,
         "callback_url": CALLBACK_URL,
-        "verify_token": VERIFICATION_TOKEN
+        "verify_token": VERIFICATION_TOKEN,
     }
 
     response = requests.post(STRAVA_SUBSCRIPTION_URL, json=data)
-    
+
     if response.status_code == 201:
         print("Successfully subscribed to Strava updates")
     else:
         print("Failed to subscribe:", response.json())
 
     return response.json()
-

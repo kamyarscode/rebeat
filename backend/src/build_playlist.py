@@ -2,8 +2,9 @@ from helpers import with_auth_headers
 import requests
 
 
-def create_playlist(user_id: str, playlist_name: str, playlist_description: str, public: bool) -> dict:
-
+def create_playlist(
+    user_id: str, playlist_name: str, playlist_description: str, public: bool
+) -> dict:
     """
     Reference:
     POST https://api.spotify.com/v1/users/{user_id}/playlists
@@ -30,18 +31,22 @@ def create_playlist(user_id: str, playlist_name: str, playlist_description: str,
 
     SPOTIFY_CREATE_PLAYLIST_URL = "https://api.spotify.com/v1/users/{user_id}/playlists"
     data = {
-    "name": playlist_name,
-    "description": playlist_description,
-    "public": public
+        "name": playlist_name,
+        "description": playlist_description,
+        "public": public,
     }
 
     try:
-        response = requests.post(SPOTIFY_CREATE_PLAYLIST_URL.format(user_id=user_id), headers=with_auth_headers(), json=data)
+        response = requests.post(
+            SPOTIFY_CREATE_PLAYLIST_URL.format(user_id=user_id),
+            headers=with_auth_headers(),
+            json=data,
+        )
         response.raise_for_status()
 
         # Return ID of playlist for now.
-        return response.json()['id']
-    
+        return response.json()["id"]
+
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
 
@@ -52,20 +57,25 @@ def add_songs(recently_played_songs_id_array: list, playlist_id: str) -> dict:
     GET https://api.spotify.com/v1/playlists/{playlist_id}
     POST https://api.spotify.com/v1/playlists/{playlist_id}/tracks
     """
-    SPOTIFY_ADD_TO_PLAYLIST_URL = "https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
+    SPOTIFY_ADD_TO_PLAYLIST_URL = (
+        "https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
+    )
 
     data = {
-    "uris": [f"spotify:track:{x}" for x in recently_played_songs_id_array],
-    "position": 0
+        "uris": [f"spotify:track:{x}" for x in recently_played_songs_id_array],
+        "position": 0,
     }
 
     try:
-        response = requests.post(SPOTIFY_ADD_TO_PLAYLIST_URL.format(playlist_id=playlist_id), headers=with_auth_headers(), json=data)
+        response = requests.post(
+            SPOTIFY_ADD_TO_PLAYLIST_URL.format(playlist_id=playlist_id),
+            headers=with_auth_headers(),
+            json=data,
+        )
         response.raise_for_status()
 
         # Return response object
         return response.json()
-    
+
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
-    
