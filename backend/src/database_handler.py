@@ -3,6 +3,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 
 
+# 👇 NOT WORKING, INCOMPLETE
+
 # Basic config setup
 # local set up:
 DATABASE_URL = f"postgresql://{user}:{password}@localhost/genericdb"

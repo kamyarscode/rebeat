@@ -19,7 +19,12 @@ function App() {
           </p>
         </div>
         <div className=" flex flex-col gap-2 sm:flex-row">
-          <ConnectStrava className="animate-in fade-in slide-in-from-bottom-4 delay-200 fill-mode-backwards ease-out-quart duration-1000" />
+          <ConnectStrava
+            className="animate-in fade-in slide-in-from-bottom-4 delay-200 fill-mode-backwards ease-out-quart duration-1000"
+            onClick={() => {
+              window.location.href = "http://localhost:8000/strava/login";
+            }}
+          />
           <ConnectSpotify
             className="animate-in fade-in slide-in-from-bottom-4 delay-300 fill-mode-backwards ease-out-quart duration-1000"
             onClick={() => {
