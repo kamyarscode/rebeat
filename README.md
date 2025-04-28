@@ -1,15 +1,21 @@
 # Rebeat
 
-Adds songs listened to during activities into a playlist.
+<p align="center">
+  <img src="rebeat.png"/>
+</p>
+
+Turn your runs into playlists you can revisit right from Strava. Connect your accounts to get started.
 
 # Table of Contents:
+
 [Access](#access)  
 [Frontend](#frontend)  
 [Backend](#backend)  
 [References](#references)  
-[To Do](#to-do)  
+[To Do](#to-do)
 
 ## Access:
+
 [Spotify Dashboard](https://developer.spotify.com/dashboard/3127926c771c495897441b4e1a3ab7d8/settings)
 
 Live at [rebeat.onrender.com](https://rebeat.onrender.com)
@@ -71,9 +77,10 @@ python ./app.py
 ```
 
 ## References:
+
 [Spotify API Docs](https://developer.spotify.com/documentation/web-api)  
 [Strava WebHooks](https://developers.strava.com/docs/webhooks/)  
-[Strava API](https://developers.strava.com/docs/reference/)  
+[Strava API](https://developers.strava.com/docs/reference/)
 
 ## To Do:
 
