@@ -1,13 +1,40 @@
 import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
+import ReactDOM from "react-dom/client";
+import { RouterProvider, createRouter } from "@tanstack/react-router";
+
 import "./index.css";
-import App from "./App.tsx";
+
+// Import the generated route tree
+import { routeTree } from "./routeTree.gen";
+
 import { NuqsAdapter } from "nuqs/adapters/react";
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <NuqsAdapter>
-      <App />
-    </NuqsAdapter>
-  </StrictMode>
-);
+// Create a new router instance
+const router = createRouter({
+  routeTree,
+  context: {},
+  defaultPreload: "intent",
+  scrollRestoration: true,
+  defaultStructuralSharing: true,
+  defaultPreloadStaleTime: 0,
+});
+
+// Register the router instance for type safety
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router;
+  }
+}
+
+// Render the app
+const rootElement = document.getElementById("root");
+if (rootElement && !rootElement.innerHTML) {
+  const root = ReactDOM.createRoot(rootElement);
+  root.render(
+    <StrictMode>
+      <NuqsAdapter>
+        <RouterProvider router={router} />
+      </NuqsAdapter>
+    </StrictMode>
+  );
+}
