@@ -6,13 +6,17 @@ import "./index.css";
 
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
+import { AuthContext } from "./routes/__root";
 
 import { NuqsAdapter } from "nuqs/adapters/react";
 
 // Create a new router instance
 const router = createRouter({
   routeTree,
-  context: {},
+  context: {
+    // Type definition for our auth context
+    authContext: undefined as AuthContext | undefined,
+  },
   defaultPreload: "intent",
   scrollRestoration: true,
   defaultStructuralSharing: true,

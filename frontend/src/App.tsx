@@ -1,10 +1,9 @@
 import { ConnectSpotify } from "@/components/connect-spotify";
 import { ConnectStrava } from "@/components/connect-strava";
-import { useQueryState } from "nuqs";
+import { useAuth } from "@/lib/auth";
 
 function App() {
-  // TODO: This is just a proof of concept, remove this
-  const [token] = useQueryState("token");
+  const { isAuthenticated, token } = useAuth();
 
   return (
     <main className="flex flex-col gap-4 container mx-auto justify-center items-center h-full px-8">
@@ -18,21 +17,28 @@ function App() {
             Connect your accounts to get started.
           </p>
         </div>
-        <div className=" flex flex-col gap-2 sm:flex-row">
-          <ConnectStrava
-            className="animate-in fade-in slide-in-from-bottom-4 delay-200 fill-mode-backwards ease-out-quart duration-1000"
-            onClick={() => {
-              window.location.href = "http://localhost:8000/strava/login";
-            }}
-          />
-          <ConnectSpotify
-            className="animate-in fade-in slide-in-from-bottom-4 delay-300 fill-mode-backwards ease-out-quart duration-1000"
-            onClick={() => {
-              window.location.href = "http://localhost:8000/login";
-            }}
-          />
-        </div>
-        {/* TODO: This is just a proof of concept, remove this */}
+
+        {isAuthenticated ? (
+          <div className="flex flex-col gap-2 sm:flex-row">
+            Strava Connected.
+            <ConnectSpotify
+              className="animate-in fade-in slide-in-from-bottom-4 delay-300 fill-mode-backwards ease-out-quart duration-1000"
+              onClick={() => {
+                window.location.href = "http://localhost:8000/login";
+              }}
+            />
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <ConnectStrava
+              className="animate-in fade-in slide-in-from-bottom-4 delay-200 fill-mode-backwards ease-out-quart duration-1000"
+              onClick={() => {
+                window.location.href = "http://localhost:8000/strava/login";
+              }}
+            />
+          </div>
+        )}
+
         {token && (
           <span className="text-wrap break-words text-xs font-mono text-muted-foreground animate-in fade-in-0 slide-in-from-bottom duration-500 p-3 rounded-md bg-muted">
             Access token: {token}
