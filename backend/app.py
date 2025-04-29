@@ -11,8 +11,8 @@ from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from src.db import get_db, User, Token
 from src.auth import create_access_token, get_current_user
-from datetime import datetime, timedelta
-
+from datetime import datetime
+from strava_models import StravaAuthResponse
 
 load_dotenv()
 
@@ -151,12 +151,13 @@ def strava_callback(request: Request, db: Session = Depends(get_db)):
     }
 
     token_response = post(access_token_url, data=params).json()
+    strava_auth = StravaAuthResponse.model_validate(token_response)
 
     # Extract Strava user ID from token response
-    strava_id = str(token_response["athlete"]["id"])
-    access_token = token_response["access_token"]
-    refresh_token = token_response["refresh_token"]
-    expires_at = datetime.fromtimestamp(token_response["expires_at"])
+    strava_id = str(strava_auth.athlete.id)
+    access_token = strava_auth.access_token
+    refresh_token = strava_auth.refresh_token
+    expires_at = datetime.fromtimestamp(strava_auth.expires_at)
 
     # Check if user exists
     user = db.query(User).filter(User.strava_id == strava_id).first()
