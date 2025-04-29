@@ -1,4 +1,12 @@
-from sqlalchemy import create_engine, Column, String, Integer, DateTime, ForeignKey
+from sqlalchemy import (
+    create_engine,
+    Column,
+    String,
+    Integer,
+    DateTime,
+    ForeignKey,
+    CheckConstraint,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session, relationship
 from sqlalchemy_utils import database_exists, create_database
@@ -48,12 +56,19 @@ def get_db():
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
-    strava_id = Column(String, unique=True, nullable=False, index=True)  # Required
-    spotify_id = Column(String, unique=True, nullable=True, index=True)  # Optional
+    strava_id = Column(String, unique=True, nullable=True, index=True)
+    spotify_id = Column(String, unique=True, nullable=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationship
     tokens = relationship("Token", back_populates="user")
+
+    # Add a check constraint to ensure at least one ID is provided
+    __table_args__ = (
+        CheckConstraint(
+            "strava_id IS NOT NULL OR spotify_id IS NOT NULL", name="check_id_not_null"
+        ),
+    )
 
 
 # Define Token model for OAuth tokens

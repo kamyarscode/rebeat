@@ -8,8 +8,6 @@ import "./index.css";
 import { routeTree } from "./routeTree.gen";
 import { AuthContext } from "./routes/__root";
 
-import { NuqsAdapter } from "nuqs/adapters/react";
-
 // Create a new router instance
 const router = createRouter({
   routeTree,
@@ -36,9 +34,7 @@ if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <StrictMode>
-      <NuqsAdapter>
-        <RouterProvider router={router} />
-      </NuqsAdapter>
+      <RouterProvider router={router} />
     </StrictMode>
   );
 }

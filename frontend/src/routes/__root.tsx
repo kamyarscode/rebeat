@@ -2,6 +2,8 @@ import { Outlet, createRootRoute } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { AuthProvider } from "@/lib/auth";
 import { extractAuthToken } from "@/lib/auth-utils";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { NuqsAdapter } from "nuqs/adapters/react";
 
 export interface AuthContext {
   isAuthenticated: boolean;
@@ -33,10 +35,16 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
+  const queryClient = new QueryClient();
+
   return (
-    <AuthProvider>
-      <Outlet />
-      <TanStackRouterDevtools />
-    </AuthProvider>
+    <NuqsAdapter>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <Outlet />
+          <TanStackRouterDevtools />
+        </AuthProvider>
+      </QueryClientProvider>
+    </NuqsAdapter>
   );
 }

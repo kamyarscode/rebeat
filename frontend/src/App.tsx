@@ -3,8 +3,10 @@ import { ConnectStrava } from "@/components/connect-strava";
 import { useAuth } from "@/lib/auth";
 import { API_URL } from "./lib/constants";
 
+import { Button } from "./components/ui/button";
+
 function App() {
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, user, isLoading } = useAuth();
 
   return (
     <main className="flex flex-col gap-4 container mx-auto justify-center items-center h-full px-8">
@@ -19,15 +21,47 @@ function App() {
           </p>
         </div>
 
-        {isAuthenticated ? (
-          <div className="flex flex-col gap-2 sm:flex-row">
-            Strava Connected.
-            <ConnectSpotify
-              className="animate-in fade-in slide-in-from-bottom-4 delay-300 fill-mode-backwards ease-out-quart duration-1000"
-              onClick={() => {
-                window.location.href = `${API_URL}/spotify/login`;
-              }}
-            />
+        {isLoading ? (
+          <div className="animate-pulse p-4 bg-muted rounded">
+            Loading account information...
+          </div>
+        ) : isAuthenticated ? (
+          <div className="flex flex-col gap-4">
+            <div className="p-4 bg-card rounded-lg shadow">
+              <h2 className="font-semibold mb-2">Your Accounts</h2>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <span>Strava</span>
+                  {user?.strava_id ? (
+                    <span className="text-green-500 text-sm">Connected</span>
+                  ) : (
+                    <ConnectStrava
+                      className="h-8 px-2 py-1 text-sm"
+                      onClick={() => {
+                        window.location.href = `${API_URL}/strava/login${token ? `?token=${token}` : ""}`;
+                      }}
+                    />
+                  )}
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Spotify</span>
+                  {user?.spotify_id ? (
+                    <span className="text-green-500 text-sm">Connected</span>
+                  ) : (
+                    <ConnectSpotify
+                      className="h-8 px-2 py-1 text-sm"
+                      onClick={() => {
+                        window.location.href = `${API_URL}/spotify/login${token ? `?token=${token}` : ""}`;
+                      }}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {user?.strava_id && user?.spotify_id && (
+              <Button>Add a playlist to my latest run</Button>
+            )}
           </div>
         ) : (
           <div className="flex flex-col gap-2 sm:flex-row">
@@ -37,13 +71,21 @@ function App() {
                 window.location.href = `${API_URL}/strava/login`;
               }}
             />
+            <ConnectSpotify
+              className="animate-in fade-in slide-in-from-bottom-4 delay-300 fill-mode-backwards ease-out-quart duration-1000"
+              onClick={() => {
+                window.location.href = `${API_URL}/spotify/login${token ? `?token=${token}` : ""}`;
+              }}
+            />
           </div>
         )}
 
-        {token && (
-          <span className="text-wrap break-words text-xs font-mono text-muted-foreground animate-in fade-in-0 slide-in-from-bottom duration-500 p-3 rounded-md bg-muted">
-            Access token: {token}
-          </span>
+        {/* Show user details in dev environment */}
+        {import.meta.env.DEV && user && (
+          <div className="text-wrap break-words text-xs font-mono text-muted-foreground animate-in fade-in-0 slide-in-from-bottom duration-500 p-3 rounded-md bg-muted">
+            <p className="font-semibold mb-1">User Info:</p>
+            <pre>{JSON.stringify(user, null, 2)}</pre>
+          </div>
         )}
       </div>
     </main>
