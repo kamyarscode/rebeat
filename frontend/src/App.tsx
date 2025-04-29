@@ -1,6 +1,7 @@
 import { ConnectSpotify } from "@/components/connect-spotify";
 import { ConnectStrava } from "@/components/connect-strava";
 import { useAuth } from "@/lib/auth";
+import { API_URL } from "./lib/constants";
 
 function App() {
   const { isAuthenticated, token } = useAuth();
@@ -24,7 +25,7 @@ function App() {
             <ConnectSpotify
               className="animate-in fade-in slide-in-from-bottom-4 delay-300 fill-mode-backwards ease-out-quart duration-1000"
               onClick={() => {
-                window.location.href = "http://localhost:8000/login";
+                window.location.href = `${API_URL}/spotify/login`;
               }}
             />
           </div>
@@ -33,7 +34,7 @@ function App() {
             <ConnectStrava
               className="animate-in fade-in slide-in-from-bottom-4 delay-200 fill-mode-backwards ease-out-quart duration-1000"
               onClick={() => {
-                window.location.href = "http://localhost:8000/strava/login";
+                window.location.href = `${API_URL}/strava/login`;
               }}
             />
           </div>
