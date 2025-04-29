@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Query
+from fastapi import FastAPI, Request, Query, Depends, HTTPException
 from fastapi.responses import RedirectResponse
 from src.strava_interface import subscribe_to_strava
 import uvicorn
@@ -8,6 +8,11 @@ import os
 import base64
 from requests import post
 from dotenv import load_dotenv
+from sqlalchemy.orm import Session
+from src.db import get_db, User, Token
+from src.auth import create_access_token, get_current_user
+from datetime import datetime, timedelta
+
 
 load_dotenv()
 
@@ -128,29 +133,70 @@ def login_with_strava():
 # A Strava auth flow redirects us back here with a code in the URL
 # We can exchange the code for an access token and do what we will with it.
 @app.get("/strava/callback")
-def strava_callback(request: Request):
+def strava_callback(request: Request, db: Session = Depends(get_db)):
     """
-    Redirects the user to callback endpoint and returns token for now.
+    Handles Strava OAuth callback and creates user if not exists
     """
+    code = request.query_params.get("code")
+    if not code:
+        return RedirectResponse(url=os.getenv("FRONTEND_URL") + "/error?error=no_code")
 
+    # Exchange code for token
     access_token_url = "https://www.strava.com/oauth/token"
     params = {
         "client_id": STRAVA_CLIENT_ID,
         "client_secret": STRAVA_CLIENT_SECRET,
-        "code": request.query_params.get("code"),
+        "code": code,
         "grant_type": "authorization_code",
     }
 
     token_response = post(access_token_url, data=params).json()
-    print(token_response)
 
-    # TODO: Store the access token in the database associated with a user.
-    # For now, just redirect to the frontend with the access token. (bad)
-    return RedirectResponse(
-        url=os.getenv("FRONTEND_URL")
-        + "?access_token="
-        + token_response["access_token"]
+    # Extract Strava user ID from token response
+    strava_id = str(token_response["athlete"]["id"])
+    access_token = token_response["access_token"]
+    refresh_token = token_response["refresh_token"]
+    expires_at = datetime.fromtimestamp(token_response["expires_at"])
+
+    # Check if user exists
+    user = db.query(User).filter(User.strava_id == strava_id).first()
+    if not user:
+        # Create new user
+        user = User(strava_id=strava_id)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    # Store/update token
+    token = (
+        db.query(Token)
+        .filter(Token.user_id == user.id, Token.provider == "strava")
+        .first()
     )
+
+    if token:
+        # Update existing token
+        token.access_token = access_token
+        token.refresh_token = refresh_token
+        token.expires_at = expires_at
+    else:
+        # Create new token
+        token = Token(
+            user_id=user.id,
+            provider="strava",
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expires_at=expires_at,
+        )
+        db.add(token)
+
+    db.commit()
+
+    # Generate JWT
+    jwt_token = create_access_token(user.id)
+
+    # Redirect to frontend with JWT
+    return RedirectResponse(url=f"{os.getenv('FRONTEND_URL')}?token={jwt_token}")
 
 
 # NOT WORKING, INCOMPLETE: Strava GET request to verify the callback URL.
@@ -199,6 +245,28 @@ def connect_to_strava():
     )
 
     return {"message": "Subscription request sent to Strava"}
+
+
+@app.get("/user/{id}")
+def get_user(id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+
+# Protected endpoint to test authentication
+@app.get("/api/me")
+def get_current_user_info(current_user: User = Depends(get_current_user)):
+    """
+    Returns the current authenticated user
+    """
+    return {
+        "id": current_user.id,
+        "strava_id": current_user.strava_id,
+        "spotify_id": current_user.spotify_id,
+        "created_at": current_user.created_at,
+    }
 
 
 # Run the app

@@ -4,7 +4,7 @@ import { useQueryState } from "nuqs";
 
 function App() {
   // TODO: This is just a proof of concept, remove this
-  const [accessToken] = useQueryState("access_token");
+  const [token] = useQueryState("token");
 
   return (
     <main className="flex flex-col gap-4 container mx-auto justify-center items-center h-full px-8">
@@ -33,9 +33,9 @@ function App() {
           />
         </div>
         {/* TODO: This is just a proof of concept, remove this */}
-        {accessToken && (
+        {token && (
           <span className="text-wrap break-words text-xs font-mono text-muted-foreground animate-in fade-in-0 slide-in-from-bottom duration-500 p-3 rounded-md bg-muted">
-            Access token: {accessToken}
+            Access token: {token}
           </span>
         )}
       </div>
