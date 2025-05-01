@@ -1,12 +1,11 @@
-from src.helpers import decode_state
+from src.helpers import build_state, decode_state
 from fastapi import FastAPI, Request, Depends
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from helpers import find_or_create_user, generate_random_string, store_token
+from helpers import find_or_create_user, store_token
 from urllib.parse import urlencode
 import os
-import base64
 from requests import post, get
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
@@ -39,6 +38,10 @@ STRAVA_CLIENT_ID = os.getenv("STRAVA_CLIENT_ID")
 STRAVA_CLIENT_SECRET = os.getenv("STRAVA_CLIENT_SECRET")
 STRAVA_REDIRECT_URI = f"{BASE_URL}/strava/callback"
 
+STRAVA_AUTH_URL = "https://www.strava.com/oauth/authorize"
+STRAVA_SCOPE = "activity:read"
+STRAVA_ACCESS_TOKEN_URL = "https://www.strava.com/oauth/token"
+
 
 def redirect_with_error(error: str):
     return RedirectResponse(url=FRONTEND_URL + "?error=" + error)
@@ -51,11 +54,9 @@ async def root():
 
 
 # Protected endpoint to test authentication
+# Returns the current authenticated user from the JWT token present in the request
 @app.get("/api/me")
 def get_current_user_info(current_user: User = Depends(get_current_user)):
-    """
-    Returns the current authenticated user
-    """
     return {
         "id": current_user.id,
         "strava_id": current_user.strava_id,
@@ -131,7 +132,7 @@ async def spotify_callback(request: Request, db: Session = Depends(get_db)):
     user = find_or_create_user(db, "spotify", spotify_id, jwt_token)
 
     # Store/update token in database
-    token = store_token(
+    store_token(
         db=db,
         user_id=user.id,
         provider="spotify",
@@ -147,21 +148,14 @@ async def spotify_callback(request: Request, db: Session = Depends(get_db)):
     return RedirectResponse(url=f"{FRONTEND_URL}?token={jwt_token}")
 
 
+# Redirects the user to Strava's OAuth authorization page.
 @app.get("/strava/login")
 def strava_login(request: Request):
-    """
-    Redirects the user to Strava's OAuth authorization page.
-    """
     # Get JWT token if it's in the request
     jwt_token = request.query_params.get("token")
 
     # Generate a state parameter to include the JWT token
-    state = generate_random_string(16)
-    if jwt_token:
-        state = base64.urlsafe_b64encode(f"{state}:{jwt_token}".encode()).decode()
-
-    STRAVA_AUTH_URL = "https://www.strava.com/oauth/authorize"
-    STRAVA_SCOPE = "activity:read"
+    state = build_state(token=jwt_token)
 
     params = {
         "client_id": STRAVA_CLIENT_ID,
@@ -175,46 +169,25 @@ def strava_login(request: Request):
     return RedirectResponse(f"{STRAVA_AUTH_URL}?{urlencode(params)}")
 
 
-# Add this function for decoding Strava state
-def decode_strava_state(state: str):
-    """
-    Decode the state parameter from Strava OAuth flow
-
-    Args:
-        state: The encoded state string
-
-    Returns:
-        dict: Dictionary containing the token if present
-    """
-    try:
-        decoded = base64.urlsafe_b64decode(state.encode()).decode()
-        if ":" in decoded:
-            random_str, token = decoded.split(":", 1)
-            return {"token": token}
-        return {}
-    except Exception:
-        return {}
-
-
 # A Strava auth flow redirects us back here with a code in the URL
 # We can exchange the code for an access token and do what we will with it.
+# We can then either create or update a user, store their strava tokens, and redirect to the frontend with a JWT
 @app.get("/strava/callback")
 def strava_callback(request: Request, db: Session = Depends(get_db)):
-    """
-    Handles Strava OAuth callback and creates user if not exists
-    """
     code = request.query_params.get("code")
     state = request.query_params.get("state")
 
     if not code:
         return redirect_with_error("no_code")
 
+    if not state:
+        return redirect_with_error("no_state")
+
     # Decode the state to extract any token
-    decoded_state = decode_strava_state(state) if state else {}
+    decoded_state = decode_state(state)
     jwt_token = decoded_state.get("token")
 
     # Exchange code for token
-    access_token_url = "https://www.strava.com/oauth/token"
     params = {
         "client_id": STRAVA_CLIENT_ID,
         "client_secret": STRAVA_CLIENT_SECRET,
@@ -222,7 +195,7 @@ def strava_callback(request: Request, db: Session = Depends(get_db)):
         "grant_type": "authorization_code",
     }
 
-    token_response = post(access_token_url, data=params).json()
+    token_response = post(STRAVA_ACCESS_TOKEN_URL, data=params).json()
     strava_auth = StravaAuthResponse.model_validate(token_response)
 
     # Extract Strava user ID from token response
@@ -234,7 +207,7 @@ def strava_callback(request: Request, db: Session = Depends(get_db)):
     user = find_or_create_user(db, "strava", strava_id, jwt_token)
 
     # Store/update token
-    token = store_token(
+    store_token(
         db=db,
         user_id=user.id,
         provider="strava",
