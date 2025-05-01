@@ -1,3 +1,4 @@
+from src.strava import build_strava_auth_url
 from src.helpers import build_state, decode_state
 from fastapi import FastAPI, Request, Depends
 from fastapi.responses import RedirectResponse
@@ -35,11 +36,8 @@ BASE_URL = os.getenv("BASE_URL")
 FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 STRAVA_CLIENT_ID = os.getenv("STRAVA_CLIENT_ID")
-STRAVA_CLIENT_SECRET = os.getenv("STRAVA_CLIENT_SECRET")
-STRAVA_REDIRECT_URI = f"{BASE_URL}/strava/callback"
 
-STRAVA_AUTH_URL = "https://www.strava.com/oauth/authorize"
-STRAVA_SCOPE = "activity:read"
+STRAVA_CLIENT_SECRET = os.getenv("STRAVA_CLIENT_SECRET")
 STRAVA_ACCESS_TOKEN_URL = "https://www.strava.com/oauth/token"
 
 
@@ -149,24 +147,12 @@ async def spotify_callback(request: Request, db: Session = Depends(get_db)):
 
 
 # Redirects the user to Strava's OAuth authorization page.
+# Includes a rebeat jwt as state to link the strava auth to the user
 @app.get("/strava/login")
 def strava_login(request: Request):
-    # Get JWT token if it's in the request
     jwt_token = request.query_params.get("token")
-
-    # Generate a state parameter to include the JWT token
-    state = build_state(token=jwt_token)
-
-    params = {
-        "client_id": STRAVA_CLIENT_ID,
-        "response_type": "code",
-        "redirect_uri": STRAVA_REDIRECT_URI,
-        "approval_prompt": "auto",
-        "scope": STRAVA_SCOPE,
-        "state": state,
-    }
-
-    return RedirectResponse(f"{STRAVA_AUTH_URL}?{urlencode(params)}")
+    strava_auth_url = build_strava_auth_url(token=jwt_token)
+    return RedirectResponse(strava_auth_url)
 
 
 # A Strava auth flow redirects us back here with a code in the URL
@@ -194,6 +180,8 @@ def strava_callback(request: Request, db: Session = Depends(get_db)):
         "code": code,
         "grant_type": "authorization_code",
     }
+
+    # TODO: Check we got the requested scopes
 
     token_response = post(STRAVA_ACCESS_TOKEN_URL, data=params).json()
     strava_auth = StravaAuthResponse.model_validate(token_response)
