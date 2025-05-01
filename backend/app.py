@@ -1,25 +1,25 @@
-from src.strava import build_strava_auth_url
-from src.helpers import build_state, decode_state
+from src.strava import build_strava_auth_url, exchange_strava_code_for_access_token
+from src.helpers import decode_state
 from fastapi import FastAPI, Request, Depends
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from helpers import find_or_create_user, store_token
-from urllib.parse import urlencode
 import os
-from requests import post, get
+from requests import get
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from src.db import get_db, User, Token
 from src.auth import create_access_token, get_current_user
 from datetime import datetime, timedelta
-from strava_models import StravaAuthResponse
 from src.spotify import (
     build_spotify_login_url,
     exchange_code_for_access_token,
 )
 
 load_dotenv()
+FRONTEND_URL = os.getenv("FRONTEND_URL")
+
 
 app = FastAPI()
 
@@ -31,14 +31,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-BASE_URL = os.getenv("BASE_URL")
-FRONTEND_URL = os.getenv("FRONTEND_URL")
-
-STRAVA_CLIENT_ID = os.getenv("STRAVA_CLIENT_ID")
-
-STRAVA_CLIENT_SECRET = os.getenv("STRAVA_CLIENT_SECRET")
-STRAVA_ACCESS_TOKEN_URL = "https://www.strava.com/oauth/token"
 
 
 def redirect_with_error(error: str):
@@ -173,18 +165,9 @@ def strava_callback(request: Request, db: Session = Depends(get_db)):
     decoded_state = decode_state(state)
     jwt_token = decoded_state.get("token")
 
-    # Exchange code for token
-    params = {
-        "client_id": STRAVA_CLIENT_ID,
-        "client_secret": STRAVA_CLIENT_SECRET,
-        "code": code,
-        "grant_type": "authorization_code",
-    }
-
     # TODO: Check we got the requested scopes
 
-    token_response = post(STRAVA_ACCESS_TOKEN_URL, data=params).json()
-    strava_auth = StravaAuthResponse.model_validate(token_response)
+    strava_auth = exchange_strava_code_for_access_token(code)
 
     # Extract Strava user ID from token response
     strava_id = str(strava_auth.athlete.id)
