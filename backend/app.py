@@ -40,6 +40,10 @@ STRAVA_CLIENT_SECRET = os.getenv("STRAVA_CLIENT_SECRET")
 STRAVA_REDIRECT_URI = f"{BASE_URL}/strava/callback"
 
 
+def redirect_with_error(error: str):
+    return RedirectResponse(url=FRONTEND_URL + "?error=" + error)
+
+
 # Root route
 @app.get("/")
 async def root():
@@ -81,17 +85,14 @@ async def spotify_callback(request: Request, db: Session = Depends(get_db)):
     state: str | None = request.query_params.get("state")
     error: str | None = request.query_params.get("error")
 
-    # If there is an error, redirect to the frontend with the error.
     if error:
-        return RedirectResponse(url=FRONTEND_URL + "/error?error=" + error)
+        return redirect_with_error(error)
 
-    # If there is no state, redirect to the frontend with an error.
     if not state:
-        return RedirectResponse(url=FRONTEND_URL + "/error?error=no_state")
+        return redirect_with_error("no_state")
 
-    # If there is no code, redirect to the frontend with an error.
     if not code:
-        return RedirectResponse(url=FRONTEND_URL + "/error?error=no_code")
+        return redirect_with_error("no_code")
 
     # Decode the state to extract any token
     decoded_state = decode_state(state)
@@ -101,7 +102,7 @@ async def spotify_callback(request: Request, db: Session = Depends(get_db)):
     token_response = exchange_code_for_access_token(code)
 
     if "error" in token_response or "access_token" not in token_response:
-        return RedirectResponse(url=FRONTEND_URL + "/error?error=token_exchange_failed")
+        return redirect_with_error("token_exchange_failed")
 
     # Get Spotify user profile to get user ID
     spotify_access_token = token_response["access_token"]
@@ -116,13 +117,13 @@ async def spotify_callback(request: Request, db: Session = Depends(get_db)):
 
     user_response = get(user_profile_url, headers=headers)
     if user_response.status_code != 200:
-        return RedirectResponse(url=FRONTEND_URL + "/error?error=profile_fetch_failed")
+        return redirect_with_error("profile_fetch_failed")
 
     spotify_user = user_response.json()
     spotify_id = spotify_user.get("id")
 
     if not spotify_id:
-        return RedirectResponse(url=FRONTEND_URL + "/error?error=no_spotify_id")
+        return redirect_with_error("no_spotify_id")
 
     # Calculate token expiration time
     expires_at = datetime.utcnow() + timedelta(seconds=expires_in)
@@ -206,7 +207,7 @@ def strava_callback(request: Request, db: Session = Depends(get_db)):
     state = request.query_params.get("state")
 
     if not code:
-        return RedirectResponse(url=FRONTEND_URL + "/error?error=no_code")
+        return redirect_with_error("no_code")
 
     # Decode the state to extract any token
     decoded_state = decode_strava_state(state) if state else {}
