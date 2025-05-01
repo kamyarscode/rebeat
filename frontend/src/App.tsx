@@ -4,9 +4,11 @@ import { useAuth } from "@/lib/auth";
 import { API_URL } from "./lib/constants";
 
 import { Button } from "./components/ui/button";
+import { useToastUrlError } from "./hooks/use-toast-url-error";
 
 function App() {
   const { isAuthenticated, token, user, isLoading } = useAuth();
+  useToastUrlError();
 
   return (
     <main className="flex flex-col gap-4 container mx-auto justify-center items-center h-full px-8">

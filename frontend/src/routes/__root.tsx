@@ -4,6 +4,7 @@ import { AuthProvider } from "@/lib/auth";
 import { extractAuthToken } from "@/lib/auth-utils";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NuqsAdapter } from "nuqs/adapters/react";
+import { Toaster } from "@/components/ui/sonner";
 
 export interface AuthContext {
   isAuthenticated: boolean;
@@ -41,6 +42,7 @@ function RootComponent() {
     <NuqsAdapter>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
+          <Toaster richColors position="top-right" />
           <Outlet />
           <TanStackRouterDevtools />
         </AuthProvider>
