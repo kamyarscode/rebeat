@@ -1,4 +1,4 @@
-from helpers import generate_random_string
+from src.helpers import generate_random_string
 from urllib.parse import urlencode
 import os
 import base64

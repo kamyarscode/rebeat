@@ -1,14 +1,7 @@
-import random
-import string
 from datetime import datetime
 from sqlalchemy.orm import Session
 from src.db import Token, User
 from src.auth import verify_token
-
-
-def generate_random_string(length):
-    letters = string.ascii_letters + string.digits
-    return "".join(random.choice(letters) for _ in range(length))
 
 
 def store_token(

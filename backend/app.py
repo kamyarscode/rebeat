@@ -4,12 +4,12 @@ from fastapi import FastAPI, Request, Depends
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from helpers import find_or_create_user, store_token
+from src.db_ops import find_or_create_user, store_token
 import os
 from requests import get
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
-from src.db import get_db, User, Token
+from src.db import get_db, User
 from src.auth import create_access_token, get_current_user
 from datetime import datetime, timedelta
 from src.spotify import (
