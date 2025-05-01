@@ -1,9 +1,9 @@
-from fastapi import FastAPI, Request, Query, Depends, HTTPException
+from src.helpers import decode_state
+from fastapi import FastAPI, Request, Depends
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
-from src.strava_interface import subscribe_to_strava
 import uvicorn
-from helpers import generate_random_string, store_token
+from helpers import find_or_create_user, generate_random_string, store_token
 from urllib.parse import urlencode
 import os
 import base64
@@ -17,7 +17,6 @@ from strava_models import StravaAuthResponse
 from src.spotify import (
     build_spotify_login_url,
     exchange_code_for_access_token,
-    decode_state,
 )
 
 load_dotenv()
@@ -39,9 +38,6 @@ FRONTEND_URL = os.getenv("FRONTEND_URL")
 STRAVA_CLIENT_ID = os.getenv("STRAVA_CLIENT_ID")
 STRAVA_CLIENT_SECRET = os.getenv("STRAVA_CLIENT_SECRET")
 STRAVA_REDIRECT_URI = f"{BASE_URL}/strava/callback"
-
-STRAVA_SUB_CALLBACK_URL = os.getenv("STRAVA_CALLBACK_URL")
-STRAVA_SUB_VERIFICATION_TOKEN = generate_random_string(16)
 
 
 # Root route
@@ -131,28 +127,7 @@ async def spotify_callback(request: Request, db: Session = Depends(get_db)):
     # Calculate token expiration time
     expires_at = datetime.utcnow() + timedelta(seconds=expires_in)
 
-    # Find or create user based on the Spotify ID
-    user = db.query(User).filter(User.spotify_id == spotify_id).first()
-
-    # If no user with this Spotify ID, try to get from JWT if provided
-    if not user and jwt_token:
-        from src.auth import verify_token
-
-        user_id = verify_token(jwt_token)
-        if user_id:
-            user = db.query(User).filter(User.id == user_id).first()
-
-            # Link Spotify account to existing user
-            if user and not user.spotify_id:
-                user.spotify_id = spotify_id
-                db.commit()
-
-    # If still no user, create new account
-    if not user:
-        user = User(spotify_id=spotify_id)
-        db.add(user)
-        db.commit()
-        db.refresh(user)
+    user = find_or_create_user(db, "spotify", spotify_id, jwt_token)
 
     # Store/update token in database
     token = store_token(
@@ -255,29 +230,7 @@ def strava_callback(request: Request, db: Session = Depends(get_db)):
     refresh_token = strava_auth.refresh_token
     expires_at = datetime.fromtimestamp(strava_auth.expires_at)
 
-    # Check if user exists with this Strava ID
-    user = db.query(User).filter(User.strava_id == strava_id).first()
-
-    # If no user with this Strava ID, try to get from JWT if provided
-    if not user and jwt_token:
-        from src.auth import verify_token
-
-        user_id = verify_token(jwt_token)
-        if user_id:
-            user = db.query(User).filter(User.id == user_id).first()
-
-            # Link Strava account to existing user
-            if user and not user.strava_id:
-                user.strava_id = strava_id
-                db.commit()
-
-    # If still no user, create new account
-    if not user:
-        # Create new user
-        user = User(strava_id=strava_id)
-        db.add(user)
-        db.commit()
-        db.refresh(user)
+    user = find_or_create_user(db, "strava", strava_id, jwt_token)
 
     # Store/update token
     token = store_token(
@@ -294,54 +247,6 @@ def strava_callback(request: Request, db: Session = Depends(get_db)):
 
     # Redirect to frontend with JWT
     return RedirectResponse(url=f"{FRONTEND_URL}?token={jwt_token}")
-
-
-# NOT WORKING, INCOMPLETE: Strava GET request to verify the callback URL.
-@app.get("/strava/webhook")
-def verify_webhook(request: Request):
-
-    hub_mode = request.query_params.get("hub.mode")
-    hub_challenge = request.query_params.get("hub.challenge")
-    hub_verify_token = request.query_params.get("hub.verify_token")
-
-    print(hub_mode, hub_challenge, hub_verify_token)
-
-    """
-    Strava will send a GET request to verify the callback URL.
-    Check if tokens match and respond back with hub.challenge.
-    
-    Args:
-        hub_mode: str - Strava hub.mode.
-        hub_challenge: str - Strava hub.challenge.
-        hub_verify_token: str - Strava hub.verify_token.
-
-    Returns:
-        dict: hub.challenge if tokens match, error message otherwise.
-    """
-    if hub_mode != "subscribe":
-        return {"error": "Invalid hub.mode"}
-
-    if hub_verify_token == STRAVA_SUB_VERIFICATION_TOKEN:
-        return {"hub.challenge": hub_challenge}
-
-    return {"error": "Invalid verification token"}
-
-
-# NOT WORKING, INCOMPLETE: Connect to Strava endpoint, kick things off with subscribe_to_strava.
-@app.get("/strava/subscribe")
-def connect_to_strava():
-    """
-    Trigger the Strava subscription process when a user visits this endpoint.
-    """
-
-    subscribe_to_strava(
-        STRAVA_CLIENT_ID=STRAVA_CLIENT_ID,
-        STRAVA_CLIENT_SECRET=STRAVA_CLIENT_SECRET,
-        CALLBACK_URL=STRAVA_SUB_CALLBACK_URL,
-        VERIFICATION_TOKEN=STRAVA_SUB_VERIFICATION_TOKEN,
-    )
-
-    return {"message": "Subscription request sent to Strava"}
 
 
 # Run the app

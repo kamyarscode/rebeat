@@ -61,7 +61,7 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationship
-    tokens = relationship("Token", back_populates="user")
+    tokens = relationship("Token", back_populates="user", cascade="all, delete-orphan")
 
     # Add a check constraint to ensure at least one ID is provided
     __table_args__ = (
