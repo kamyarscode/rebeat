@@ -57,39 +57,33 @@ def get_current_user_info(current_user: User = Depends(get_current_user)):
 
 # Begins the authorization process. Redirects to spotify's authorization page for user consent.
 # More info at: https://developer.spotify.com/documentation/web-api/tutorials/code-flow
+# If there's a token in the request, the caller claims to be an existing rebeat user
+# and we'll use that token to link the spotify auth to the this user
 @app.get("/spotify/login")
 def spotify_login(request: Request):
-    # Get JWT token if it's in the request
-    jwt_token = request.query_params.get("token")
-
-    # Pass the token to be encoded in the state parameter
-    spotify_url = build_spotify_login_url(token=jwt_token)
-
+    rebeat_jwt = request.query_params.get("token")
+    spotify_url = build_spotify_login_url(token=rebeat_jwt)
     return RedirectResponse(spotify_url)
 
 
 # Receives the code and state from spotify, and then exchanges the code for an access token
 @app.get("/spotify/callback")
 async def spotify_callback(request: Request, db: Session = Depends(get_db)):
-    # Get parameters from the request
     code: str | None = request.query_params.get("code")
     state: str | None = request.query_params.get("state")
     error: str | None = request.query_params.get("error")
-
     if error:
         return redirect_with_error(error)
-
     if not state:
         return redirect_with_error("no_state")
-
     if not code:
         return redirect_with_error("no_code")
 
-    # Decode the state to extract any token
+    # Decode the state to extract the rebeat jwt
     decoded_state = decode_state(state)
-    jwt_token = decoded_state.get("token")
+    rebeat_jwt = decoded_state.get("token")
 
-    # Exchange the code for tokens
+    # Exchange the code for spotify tokens
     token_response = exchange_code_for_access_token(code)
 
     if "error" in token_response or "access_token" not in token_response:
@@ -119,7 +113,7 @@ async def spotify_callback(request: Request, db: Session = Depends(get_db)):
     # Calculate token expiration time
     expires_at = datetime.utcnow() + timedelta(seconds=expires_in)
 
-    user = find_or_create_user(db, "spotify", spotify_id, jwt_token)
+    user = find_or_create_user(db, "spotify", spotify_id, rebeat_jwt)
 
     # Store/update token in database
     store_token(
@@ -131,19 +125,18 @@ async def spotify_callback(request: Request, db: Session = Depends(get_db)):
         expires_at=expires_at,
     )
 
-    # Generate JWT for authentication
-    jwt_token = create_access_token(user.id)
-
-    # Redirect to frontend with JWT
-    return RedirectResponse(url=f"{FRONTEND_URL}?token={jwt_token}")
+    # Either this a new login with spotify, or the linking of a new spotify account to an existing rebeat user
+    # In both cases, we can call this a new session and generate a JWT for it
+    rebeat_jwt = create_access_token(user.id)
+    return RedirectResponse(url=f"{FRONTEND_URL}?token={rebeat_jwt}")
 
 
 # Redirects the user to Strava's OAuth authorization page.
 # Includes a rebeat jwt as state to link the strava auth to the user
 @app.get("/strava/login")
 def strava_login(request: Request):
-    jwt_token = request.query_params.get("token")
-    strava_auth_url = build_strava_auth_url(token=jwt_token)
+    rebeat_jwt = request.query_params.get("token")
+    strava_auth_url = build_strava_auth_url(token=rebeat_jwt)
     return RedirectResponse(strava_auth_url)
 
 
@@ -154,20 +147,18 @@ def strava_login(request: Request):
 def strava_callback(request: Request, db: Session = Depends(get_db)):
     code = request.query_params.get("code")
     state = request.query_params.get("state")
-
     if not code:
         return redirect_with_error("no_code")
-
     if not state:
         return redirect_with_error("no_state")
 
-    # Decode the state to extract any token
+    # Decode the state to extract the rebeat jwt
     decoded_state = decode_state(state)
-    jwt_token = decoded_state.get("token")
+    rebeat_jwt = decoded_state.get("token")
 
-    # TODO: Check we got the requested scopes
-
+    # Exchange the code for strava tokens
     strava_auth = exchange_strava_code_for_access_token(code)
+    # TODO: Check we got the requested scopes
 
     # Extract Strava user ID from token response
     strava_id = str(strava_auth.athlete.id)
@@ -175,7 +166,7 @@ def strava_callback(request: Request, db: Session = Depends(get_db)):
     refresh_token = strava_auth.refresh_token
     expires_at = datetime.fromtimestamp(strava_auth.expires_at)
 
-    user = find_or_create_user(db, "strava", strava_id, jwt_token)
+    user = find_or_create_user(db, "strava", strava_id, rebeat_jwt)
 
     # Store/update token
     store_token(
@@ -187,11 +178,10 @@ def strava_callback(request: Request, db: Session = Depends(get_db)):
         expires_at=expires_at,
     )
 
-    # Generate JWT
-    jwt_token = create_access_token(user.id)
-
-    # Redirect to frontend with JWT
-    return RedirectResponse(url=f"{FRONTEND_URL}?token={jwt_token}")
+    # Either this a new login with strava, or the linking of a new strava account to an existing rebeat user
+    # In both cases, we can call this a new session and generate a JWT for it
+    rebeat_jwt = create_access_token(user.id)
+    return RedirectResponse(url=f"{FRONTEND_URL}?token={rebeat_jwt}")
 
 
 # Run the app
