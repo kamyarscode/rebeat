@@ -21,66 +21,33 @@ function App() {
             Turn your runs into playlists you can revisit right from Strava.
             Connect your accounts to get started.
           </p>
+          {isAuthenticated && <p>Welcome back, {user?.id}!</p>}
         </div>
-
-        {isLoading ? (
-          <div className="animate-pulse p-4 bg-muted rounded">
-            Loading account information...
-          </div>
-        ) : isAuthenticated ? (
-          <div className="flex flex-col gap-4">
-            <div className="p-4 bg-card rounded-lg shadow">
-              <h2 className="font-semibold mb-2">Your Accounts</h2>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <span>Strava</span>
-                  {user?.strava_id ? (
-                    <span className="text-green-500 text-sm">Connected</span>
-                  ) : (
-                    <ConnectStrava
-                      className="h-8 px-2 py-1 text-sm"
-                      onClick={() => {
-                        window.location.href = `${API_URL}/strava/login${token ? `?token=${token}` : ""}`;
-                      }}
-                    />
-                  )}
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Spotify</span>
-                  {user?.spotify_id ? (
-                    <span className="text-green-500 text-sm">Connected</span>
-                  ) : (
-                    <ConnectSpotify
-                      className="h-8 px-2 py-1 text-sm"
-                      onClick={() => {
-                        window.location.href = `${API_URL}/spotify/login${token ? `?token=${token}` : ""}`;
-                      }}
-                    />
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {user?.strava_id && user?.spotify_id && (
-              <Button>Add a playlist to my latest run</Button>
-            )}
-          </div>
-        ) : (
+        <div className="flex flex-col gap-2">
           <div className="flex flex-col gap-2 sm:flex-row">
             <ConnectStrava
+              connected={!!user?.strava_id}
+              disabled={isLoading || !!user?.strava_id}
               className="animate-in fade-in slide-in-from-bottom-4 delay-200 fill-mode-backwards ease-out-quart duration-1000"
               onClick={() => {
                 window.location.href = `${API_URL}/strava/login`;
               }}
             />
             <ConnectSpotify
+              connected={!!user?.spotify_id}
+              disabled={isLoading || !!user?.spotify_id}
               className="animate-in fade-in slide-in-from-bottom-4 delay-300 fill-mode-backwards ease-out-quart duration-1000"
               onClick={() => {
                 window.location.href = `${API_URL}/spotify/login${token ? `?token=${token}` : ""}`;
               }}
             />
           </div>
-        )}
+          {user?.strava_id && user?.spotify_id && (
+            <Button variant="outline">
+              🎵 Add a playlist to my latest run
+            </Button>
+          )}
+        </div>
 
         {/* Show user details in dev environment */}
         {import.meta.env.DEV && user && (

@@ -5,18 +5,26 @@ import { cn } from "@/lib/utils";
 export const ConnectSpotify = ({
   className,
   onClick,
+  ref,
+  disabled,
+  connected,
 }: {
   className?: string;
   onClick?: () => void;
+  ref?: React.Ref<HTMLButtonElement>;
+  disabled?: boolean;
+  connected?: boolean;
 }) => {
   return (
     <Button
-      variant="secondary"
+      ref={ref}
+      variant={connected ? "success" : "secondary"}
       className={cn("w-full", className)}
       onClick={onClick}
+      disabled={disabled}
     >
       <Icon className="mr-1" />
-      Connect Spotify
+      {connected ? "Spotify Connected" : "Connect Spotify"}
     </Button>
   );
 };

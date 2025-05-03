@@ -51,6 +51,10 @@ module.exports = {
           5: "hsl(var(--chart-5))",
         },
         strava: "#fc4c02",
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
       },
     },
     /*  Benjamin De Cock's Easing functions */
