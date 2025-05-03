@@ -18,7 +18,7 @@ def create_access_token(user_id: int):
     """
     Generate a JWT token for a user
     """
-    expires = datetime.utcnow() + timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
+    expires = datetime.now() + timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
     to_encode = {"sub": str(user_id), "exp": expires}
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -32,7 +32,7 @@ def verify_token(token: str):
         user_id = int(payload.get("sub"))
         expiration = datetime.fromtimestamp(payload.get("exp"))
 
-        if expiration < datetime.utcnow():
+        if expiration < datetime.now():
             return None
 
         return user_id

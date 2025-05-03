@@ -58,7 +58,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     strava_id = Column(String, unique=True, nullable=True, index=True)
     spotify_id = Column(String, unique=True, nullable=True, index=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now())
 
     # Relationship
     tokens = relationship("Token", back_populates="user", cascade="all, delete-orphan")
@@ -80,8 +80,8 @@ class Token(Base):
     access_token = Column(String)
     refresh_token = Column(String)
     expires_at = Column(DateTime)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now())
+    updated_at = Column(DateTime, default=datetime.now(), onupdate=datetime.now())
 
     # Relationship
     user = relationship("User", back_populates="tokens")
