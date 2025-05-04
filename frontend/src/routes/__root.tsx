@@ -42,7 +42,7 @@ function RootComponent() {
     <NuqsAdapter>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <Toaster richColors position="top-right" />
+          <Toaster richColors position="bottom-center" />
           <Outlet />
           <TanStackRouterDevtools />
         </AuthProvider>

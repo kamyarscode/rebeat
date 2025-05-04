@@ -40,7 +40,7 @@ export const AddToLatest = ({ className }: { className?: string }) => {
       <Button
         variant="secondary"
         onClick={() => addToLatest()}
-        className="text-wrap h-fit p-2"
+        className="text-wrap h-fit p-3"
         disabled={isPending}
       >
         <span className="min-w-0">
