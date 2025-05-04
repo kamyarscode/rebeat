@@ -116,7 +116,7 @@ async def spotify_callback(request: Request, db: Session = Depends(get_db)):
         return redirect_with_error("no_spotify_id")
 
     # Calculate token expiration time
-    expires_at = datetime.utcnow() + timedelta(seconds=expires_in)
+    expires_at = datetime.now() + timedelta(seconds=expires_in)
 
     user = find_or_create_user(db, "spotify", spotify_id, rebeat_jwt)
 

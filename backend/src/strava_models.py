@@ -33,3 +33,10 @@ class StravaAuthResponse(BaseModel):
     refresh_token: str
     access_token: str
     athlete: Athlete
+
+
+class RefreshStravaAccessTokenResponse(BaseModel):
+    access_token: str
+    expires_at: int
+    expires_in: int
+    refresh_token: str

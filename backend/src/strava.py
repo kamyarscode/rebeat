@@ -1,7 +1,8 @@
-import logging
+from datetime import datetime
 import os
 from urllib.parse import urlencode
-from src.strava_models import StravaAuthResponse
+from src.db_ops import store_token
+from src.strava_models import RefreshStravaAccessTokenResponse, StravaAuthResponse
 from src.helpers import build_state
 from dotenv import load_dotenv
 from requests import post, get, put
@@ -48,14 +49,46 @@ def exchange_strava_code_for_access_token(code: str):
     return StravaAuthResponse.model_validate(response)
 
 
+def refresh_strava_access_token(
+    token: Token, db: Session
+) -> RefreshStravaAccessTokenResponse:
+    body = {
+        "client_id": STRAVA_CLIENT_ID,
+        "client_secret": STRAVA_CLIENT_SECRET,
+        "grant_type": "refresh_token",
+        "refresh_token": token.refresh_token,
+    }
+    response = post(STRAVA_ACCESS_TOKEN_URL, data=body)
+    if response.status_code != 200:
+        raise Exception(f"Failed to refresh Strava access token: {response.json()}")
+    response_json = response.json()
+    if response_json.get("error"):
+        raise Exception(
+            f"Failed to refresh Strava access token: {response_json['error']}"
+        )
+    object: RefreshStravaAccessTokenResponse = (
+        RefreshStravaAccessTokenResponse.model_validate(response_json)
+    )
+    store_token(
+        db=db,
+        user_id=token.user_id,
+        provider="strava",
+        access_token=object.access_token,
+        refresh_token=object.refresh_token,
+        expires_at=datetime.fromtimestamp(object.expires_at),
+    )
+    return object
+
+
 def get_strava_access_token_from_db(user_id: int, db: Session):
-    user = (
+    token = (
         db.query(Token)
         .filter(Token.user_id == user_id, Token.provider == "strava")
         .first()
     )
-    # TODO: Refresh if expired
-    return user.access_token
+    if token.expires_at.timestamp() < datetime.now().timestamp():
+        token = refresh_strava_access_token(token, db)
+    return token.access_token
 
 
 def get_latest_run(user_id: int, db: Session):
