@@ -24,7 +24,7 @@ export const ConnectSpotify = ({
       disabled={disabled}
     >
       <Icon className="mr-1" />
-      {connected ? "Spotify Connected" : "Connect Spotify"}
+      {connected ? "Spotify Connected" : "Log in with Spotify"}
     </Button>
   );
 };

@@ -23,7 +23,7 @@ export const ConnectStrava = ({
       disabled={disabled}
     >
       <Icon className="mr-1 text-strava" />
-      {connected ? "Strava Connected" : "Connect Strava"}
+      {connected ? "Strava Connected" : "Log in with Strava"}
     </Button>
   );
 };

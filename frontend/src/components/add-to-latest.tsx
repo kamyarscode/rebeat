@@ -3,33 +3,51 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "./ui/button";
 import { addPlaylistToLatestRun } from "@/lib/api";
 import { toast } from "sonner";
-
-export const AddToLatest = () => {
+import { cn } from "@/lib/utils";
+export const AddToLatest = ({ className }: { className?: string }) => {
   const { data: latestRun } = useQuery({
     queryKey: ["latestRun"],
     queryFn: getLatestRun,
   });
 
+  const runName = latestRun?.name ? `${latestRun?.name}` : "latest run";
+  const runUrl = latestRun?.url;
   const { mutate: addToLatest, isPending } = useMutation({
     mutationFn: addPlaylistToLatestRun,
     onSuccess: () => {
-      toast.success("Playlist added to latest run");
+      toast.success(
+        <span className="w-fit">
+          Added a playlist to{" "}
+          <a
+            href={runUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline"
+          >
+            {runName}
+          </a>
+        </span>,
+        { duration: 10000 }
+      );
     },
     onError: () => {
-      toast.error("Failed to add playlist to latest run");
+      toast.error(`Failed to add playlist to ${runName}`);
     },
   });
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className={cn("flex flex-col gap-2", className)}>
       <Button
-        variant="outline"
+        variant="secondary"
         onClick={() => addToLatest()}
+        className="text-wrap h-fit p-2"
         disabled={isPending}
       >
-        {isPending ? "🎵 Adding playlist to" : "🎵 Add a playlist to"}
-        {latestRun?.name ? `"${latestRun?.name}"` : "my latest run"}
-        {isPending ? "..." : ""}
+        <span className="min-w-0">
+          {isPending ? "🎵 Adding playlist to " : "🎵 Add a playlist to "}
+          <span className="underline">{runName}</span>
+          {isPending ? "..." : ""}
+        </span>
       </Button>
     </div>
   );

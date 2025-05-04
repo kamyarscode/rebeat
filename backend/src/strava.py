@@ -114,6 +114,7 @@ def get_latest_run(user_id: int, db: Session):
         "moving_time": activity_response["moving_time"],
         "start_date": activity_response["start_date"],
         "description": activity_response["description"],
+        "url": f"https://www.strava.com/activities/{activity_response['id']}",
     }
 
 
