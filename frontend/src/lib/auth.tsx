@@ -32,7 +32,7 @@ const fetchUserData = async (token: string): Promise<User> => {
     throw new Error("No token provided");
   }
 
-  const response = await fetch(`${API_URL}/api/me`, {
+  const response = await fetch(`${API_URL}/me`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

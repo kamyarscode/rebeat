@@ -21,6 +21,14 @@ export function requireAuth(
   return authContext;
 }
 
+const getFromLocalStorage = (): string | null => {
+  if (typeof window === "undefined") return null;
+  const token = localStorage.getItem(TOKEN_STORAGE_KEY);
+  // remove quotes from token
+  const cleanedToken = token?.replace(/^"|"$/g, "") ?? null;
+  return cleanedToken;
+};
+
 /**
  * Extract auth token from URL params and localStorage
  * URL token takes precedence over localStorage unless skipUrlToken is true
@@ -28,9 +36,7 @@ export function requireAuth(
 export function extractAuthToken(skipUrlToken = false): string | null {
   // Only check localStorage if skipUrlToken is true
   if (skipUrlToken) {
-    return typeof window !== "undefined"
-      ? localStorage.getItem(TOKEN_STORAGE_KEY)
-      : null;
+    return getFromLocalStorage();
   }
 
   // First try URL params
@@ -39,8 +45,18 @@ export function extractAuthToken(skipUrlToken = false): string | null {
 
   // Then try localStorage if no URL token
   if (!urlToken && typeof window !== "undefined") {
-    return localStorage.getItem(TOKEN_STORAGE_KEY);
+    return getFromLocalStorage();
   }
 
   return urlToken;
 }
+
+export const withAuth = (options?: RequestInit): RequestInit => {
+  return {
+    ...options,
+    headers: {
+      ...options?.headers,
+      Authorization: `Bearer ${extractAuthToken()}`,
+    },
+  };
+};

@@ -3,8 +3,8 @@ import { ConnectStrava } from "@/components/connect-strava";
 import { useAuth } from "@/lib/auth";
 import { API_URL } from "./lib/constants";
 
-import { Button } from "./components/ui/button";
 import { useToastUrlError } from "./hooks/use-toast-url-error";
+import { AddToLatest } from "./components/add-to-latest";
 
 function App() {
   const { isAuthenticated, token, user, isLoading } = useAuth();
@@ -42,11 +42,7 @@ function App() {
               }}
             />
           </div>
-          {user?.strava_id && user?.spotify_id && (
-            <Button variant="outline">
-              🎵 Add a playlist to my latest run
-            </Button>
-          )}
+          {user?.strava_id && user?.spotify_id && <AddToLatest />}
         </div>
 
         {/* Show user details in dev environment */}

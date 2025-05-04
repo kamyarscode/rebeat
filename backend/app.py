@@ -1,4 +1,8 @@
-from src.strava import build_strava_auth_url, exchange_strava_code_for_access_token
+from src.strava import (
+    build_strava_auth_url,
+    exchange_strava_code_for_access_token,
+    get_latest_run,
+)
 from src.helpers import decode_state
 from fastapi import FastAPI, Request, Depends
 from fastapi.responses import RedirectResponse
@@ -45,7 +49,7 @@ async def root():
 
 # Protected endpoint to test authentication
 # Returns the current authenticated user from the JWT token present in the request
-@app.get("/api/me")
+@app.get("/me")
 def get_current_user_info(current_user: User = Depends(get_current_user)):
     return {
         "id": current_user.id,
@@ -182,6 +186,13 @@ def strava_callback(request: Request, db: Session = Depends(get_db)):
     # In both cases, we can call this a new session and generate a JWT for it
     rebeat_jwt = create_access_token(user.id)
     return RedirectResponse(url=f"{FRONTEND_URL}?token={rebeat_jwt}")
+
+
+@app.get("/latest")
+def latest_run(
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+):
+    return get_latest_run(current_user.id, db)
 
 
 # Run the app
