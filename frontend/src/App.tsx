@@ -5,6 +5,7 @@ import { API_URL } from "./lib/constants";
 
 import { useToastUrlError } from "./hooks/use-toast-url-error";
 import { AddToLatest } from "./components/add-to-latest";
+import { Devtools } from "./components/devtools";
 
 function App() {
   const { isAuthenticated, token, user, isLoading } = useAuth();
@@ -44,15 +45,8 @@ function App() {
           </div>
           {user?.strava_id && user?.spotify_id && <AddToLatest />}
         </div>
-
-        {/* Show user details in dev environment */}
-        {import.meta.env.DEV && user && (
-          <div className="text-wrap break-words text-xs font-mono text-muted-foreground animate-in fade-in-0 slide-in-from-bottom duration-500 p-3 rounded-md bg-muted">
-            <p className="font-semibold mb-1">User Info:</p>
-            <pre>{JSON.stringify(user, null, 2)}</pre>
-          </div>
-        )}
       </div>
+      {import.meta.env.DEV && <Devtools />}
     </main>
   );
 }
