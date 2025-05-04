@@ -4,7 +4,7 @@ from urllib.parse import urlencode
 from src.strava_models import StravaAuthResponse
 from src.helpers import build_state
 from dotenv import load_dotenv
-from requests import post, get
+from requests import post, get, put
 from sqlalchemy.orm import Session
 from src.db import Token
 
@@ -71,10 +71,33 @@ def get_latest_run(user_id: int, db: Session):
         params=query_params,
         headers=headers,
     ).json()
+    id = response[0]["id"]
+    full_activity_url = f"{STRAVA_API_URL}/activities/{id}"
+    activity_response = get(full_activity_url, headers=headers).json()
     return {
-        "id": response[0]["id"],
-        "name": response[0]["name"],
-        "distance": response[0]["distance"],
-        "moving_time": response[0]["moving_time"],
-        "start_date": response[0]["start_date"],
+        "id": activity_response["id"],
+        "name": activity_response["name"],
+        "distance": activity_response["distance"],
+        "moving_time": activity_response["moving_time"],
+        "start_date": activity_response["start_date"],
+        "description": activity_response["description"],
     }
+
+
+def add_playlist_to_latest_run(user_id: int, playlist_id: str, db: Session):
+    latest_run = get_latest_run(user_id, db)
+    latest_run_id = latest_run["id"]
+    latest_run_description = latest_run["description"]
+    access_token = get_strava_access_token_from_db(user_id, db)
+    body = {
+        "description": f"{latest_run_description}\n\nAdded from Rebeat: {playlist_id}",
+    }
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+    }
+    response = put(
+        f"{STRAVA_API_URL}/activities/{latest_run_id}",
+        data=body,
+        headers=headers,
+    ).json()
+    return response

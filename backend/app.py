@@ -1,4 +1,5 @@
 from src.strava import (
+    add_playlist_to_latest_run,
     build_strava_auth_url,
     exchange_strava_code_for_access_token,
     get_latest_run,
@@ -193,6 +194,15 @@ def latest_run(
     current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     return get_latest_run(current_user.id, db)
+
+
+@app.post("/latest")
+def add_to_latest_run(
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+):
+    # TODO: Kamyar adds function call to build playlist and return id or url
+    playlist_id = "123"
+    return add_playlist_to_latest_run(current_user.id, playlist_id, db)
 
 
 # Run the app
