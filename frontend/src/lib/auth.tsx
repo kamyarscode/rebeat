@@ -9,6 +9,7 @@ import { useLocalStorage } from "@uidotdev/usehooks";
 // User interface based on what the API returns
 interface User {
   id: number;
+  name?: string;
   strava_id?: string;
   spotify_id?: string;
   created_at: string;

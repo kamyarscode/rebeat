@@ -56,6 +56,7 @@ def get_db():
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=True)
     strava_id = Column(String, unique=True, nullable=True, index=True)
     spotify_id = Column(String, unique=True, nullable=True, index=True)
     created_at = Column(DateTime, default=datetime.now())

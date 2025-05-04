@@ -11,18 +11,23 @@ function App() {
   const { isAuthenticated, token, user, isLoading } = useAuth();
   useToastUrlError();
 
+  const title = isAuthenticated
+    ? user?.name
+      ? `Welcome back, ${user.name}!`
+      : "Welcome back"
+    : "Welcome to Rebeat";
+
   return (
     <main className="flex flex-col gap-4 container mx-auto justify-center items-center h-full px-8">
       <div className="flex flex-col gap-6 max-w-sm">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold animate-in fade-in slide-in-from-bottom-4 duration-1000 ease-out-quart">
-            Welcome to Rebeat
+            {title}
           </h1>
           <p className="text-base text-muted-foreground animate-in fade-in slide-in-from-bottom-4 delay-100 fill-mode-backwards ease-out-quart duration-1000">
             Turn your runs into playlists you can revisit right from Strava.
             Connect your accounts to get started.
           </p>
-          {isAuthenticated && <p>Welcome back, {user?.id}!</p>}
         </div>
         <div className="flex flex-col gap-2">
           <div className="flex flex-col gap-2 sm:flex-row">

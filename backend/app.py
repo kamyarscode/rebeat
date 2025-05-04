@@ -52,12 +52,7 @@ async def root():
 # Returns the current authenticated user from the JWT token present in the request
 @app.get("/me")
 def get_current_user_info(current_user: User = Depends(get_current_user)):
-    return {
-        "id": current_user.id,
-        "strava_id": current_user.strava_id,
-        "spotify_id": current_user.spotify_id,
-        "created_at": current_user.created_at,
-    }
+    return current_user
 
 
 # Begins the authorization process. Redirects to spotify's authorization page for user consent.
@@ -111,6 +106,7 @@ async def spotify_callback(request: Request, db: Session = Depends(get_db)):
 
     spotify_user = user_response.json()
     spotify_id = spotify_user.get("id")
+    spotify_name = spotify_user.get("display_name")
 
     if not spotify_id:
         return redirect_with_error("no_spotify_id")
@@ -119,6 +115,8 @@ async def spotify_callback(request: Request, db: Session = Depends(get_db)):
     expires_at = datetime.now() + timedelta(seconds=expires_in)
 
     user = find_or_create_user(db, "spotify", spotify_id, rebeat_jwt)
+    if not user.name and spotify_name:
+        user.name = spotify_name
 
     # Store/update token in database
     store_token(
@@ -167,11 +165,14 @@ def strava_callback(request: Request, db: Session = Depends(get_db)):
 
     # Extract Strava user ID from token response
     strava_id = str(strava_auth.athlete.id)
+    strava_name = strava_auth.athlete.firstname
     access_token = strava_auth.access_token
     refresh_token = strava_auth.refresh_token
     expires_at = datetime.fromtimestamp(strava_auth.expires_at)
 
     user = find_or_create_user(db, "strava", strava_id, rebeat_jwt)
+    if not user.name and strava_name:
+        user.name = strava_name
 
     # Store/update token
     store_token(
