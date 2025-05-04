@@ -30,7 +30,7 @@ function App() {
               disabled={isLoading || !!user?.strava_id}
               className="animate-in fade-in slide-in-from-bottom-4 delay-200 fill-mode-backwards ease-out-quart duration-1000"
               onClick={() => {
-                window.location.href = `${API_URL}/strava/login`;
+                window.location.href = `${API_URL}/strava/login${token ? `?token=${token}` : ""}`;
               }}
             />
             <ConnectSpotify
