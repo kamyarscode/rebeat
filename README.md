@@ -34,8 +34,8 @@ Vite + React + TypeScript just to send you to the auth flow and look pretty.
 
 ```bash
 cd frontend
-npm install
-npm run dev
+bun install
+bun run dev
 ```
 
 ## 💽 Backend
