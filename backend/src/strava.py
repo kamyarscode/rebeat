@@ -118,13 +118,13 @@ def get_latest_run(user_id: int, db: Session):
     }
 
 
-def add_playlist_to_latest_run(user_id: int, playlist_id: str, db: Session):
+def add_playlist_to_latest_run(user_id: int, playlist_url: str, db: Session):
     latest_run = get_latest_run(user_id, db)
     latest_run_id = latest_run["id"]
     latest_run_description = latest_run["description"]
     access_token = get_strava_access_token_from_db(user_id, db)
     body = {
-        "description": f"{latest_run_description}\n\nAdded from Rebeat: {playlist_id}",
+        "description": f"{latest_run_description}\n\nAdded from Rebeat: {playlist_url}",
     }
     headers = {
         "Authorization": f"Bearer {access_token}",

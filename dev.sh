@@ -7,4 +7,4 @@ python3 app.py &
 
 # run the frontend
 cd ../frontend
-npm run dev &
+bun run dev &
