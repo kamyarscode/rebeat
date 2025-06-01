@@ -59,6 +59,9 @@ source .rebeat/bin/activate
 # Install project in dev mode to see changes
 pip install -e .
 
+# Pull and run a postgres container
+docker-compose -p rebeat up -d
+
 # Start the server
 python ./app.py
 ```
