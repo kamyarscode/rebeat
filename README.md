@@ -18,7 +18,7 @@ Live at [rebeat.onrender.com](https://rebeat.onrender.com)
 
 ## 🚀 Quick Start
 
-You'll need postgres running locally and to setup both `.env` files.
+You'll need docker, python, and bun.
 
 ```sh
 # Clone the repo
@@ -47,6 +47,9 @@ Does all the actual work with auth flows, callbacks, db storage, creating playli
 
 # Navigate to the backend directory
 cd ./backend
+
+# Copy the example env and update with thr right values
+cp .env.example .env
 
 # Create venv
 python -m venv .rebeat
@@ -84,8 +87,7 @@ python ./app.py
 
 ## ✅ TODO
 
-- [ ] Use miniconda
-- [ ] Add way to support workouts longer than 100 minutes
+- [ ] Use uv
+- [ ] Add way to support workouts longer than 100 minutes / more than 50 songs
 - [ ] Add a preference toggle between private/public description
-- [ ] Better functionality to deliver new songs and avoid repeats
 - [ ] Add map of when/where each song is played
