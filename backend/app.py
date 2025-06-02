@@ -201,9 +201,7 @@ def latest_run(
 def add_to_latest_run(
     current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
-    # TODO: Kamyar adds function call to build playlist and return url
-    playlist_url = "https://open.spotify.com/playlist/37i9dQZF1DX9wCBDkixAu7"
-    return add_playlist_to_latest_run(current_user.id, playlist_url, db)
+    return add_playlist_to_latest_run(current_user.id, current_user.spotify_id, db)
 
 
 # Run the app

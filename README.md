@@ -88,6 +88,7 @@ python ./app.py
 ## ✅ TODO
 
 - [ ] Use uv
+- [ ] Throw if there no no songs during the run and surface on frontend
 - [ ] Add way to support workouts longer than 100 minutes / more than 50 songs
 - [ ] Add a preference toggle between private/public description
 - [ ] Add map of when/where each song is played

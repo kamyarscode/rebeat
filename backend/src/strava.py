@@ -8,6 +8,9 @@ from dotenv import load_dotenv
 from requests import post, get, put
 from sqlalchemy.orm import Session
 from src.db import Token
+from time_utils import iso_to_unix
+from spotify import build_playlist
+
 
 load_dotenv()
 
@@ -113,18 +116,33 @@ def get_latest_run(user_id: int, db: Session):
         "distance": activity_response["distance"],
         "moving_time": activity_response["moving_time"],
         "start_date": activity_response["start_date"],
+        "elapsed_time": activity_response["elapsed_time"],
         "description": activity_response["description"],
         "url": f"https://www.strava.com/activities/{activity_response['id']}",
     }
 
 
-def add_playlist_to_latest_run(user_id: int, playlist_url: str, db: Session):
+def add_playlist_to_latest_run(user_id: int, spotify_user_id: str, db: Session):
     latest_run = get_latest_run(user_id, db)
     latest_run_id = latest_run["id"]
     latest_run_description = latest_run["description"]
+
+    # use latest run elapsed time (seconds) to create run_end_time UTC ISO string
+    start_time_iso_utc = latest_run["start_date"]
+    start_date_milli = iso_to_unix(start_time_iso_utc)
+    end_time_milli = start_date_milli + latest_run["elapsed_time"] * 1000
+    end_time_iso_utc = datetime.fromtimestamp(end_time_milli / 1000).isoformat()
+    playlist_url = build_playlist(
+        user_id=user_id,
+        spotify_user_id=spotify_user_id,
+        start_time=start_time_iso_utc,
+        end_time=end_time_iso_utc,
+        db=db,
+    )
+
     access_token = get_strava_access_token_from_db(user_id, db)
     body = {
-        "description": f"{latest_run_description}\n\nAdded from Rebeat: {playlist_url}",
+        "description": f"{latest_run_description}\n\n{playlist_url}",
     }
     headers = {
         "Authorization": f"Bearer {access_token}",
