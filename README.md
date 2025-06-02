@@ -89,6 +89,8 @@ python ./app.py
 
 - [ ] Use uv
 - [ ] Throw if there no no songs during the run and surface on frontend
+- [ ] Organize playlists under a folder
+- [ ] UI showing the latest activities, if they've been enhanced, and a button to do so
 - [ ] Add way to support workouts longer than 100 minutes / more than 50 songs
 - [ ] Add a preference toggle between private/public description
 - [ ] Add map of when/where each song is played
