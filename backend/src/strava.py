@@ -137,6 +137,8 @@ def add_playlist_to_latest_run(user_id: int, spotify_user_id: str, db: Session):
         spotify_user_id=spotify_user_id,
         start_time=start_time_iso_utc,
         end_time=end_time_iso_utc,
+        playlist_name=latest_run["name"],
+        playlist_description=f"The songs played during a run called {latest_run['name']}",
         db=db,
     )
 
