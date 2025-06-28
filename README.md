@@ -34,6 +34,11 @@ Vite + React + TypeScript just to send you to the auth flow and look pretty.
 
 ```bash
 cd frontend
+
+# Copy the example env and update with thr right values
+cp .env.example .env
+
+# install deps and run dev server
 bun install
 bun run dev
 ```
