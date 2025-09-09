@@ -30,8 +30,15 @@ export const AddToLatest = ({ className }: { className?: string }) => {
         { duration: 10000 }
       );
     },
-    onError: () => {
-      toast.error(`Failed to add playlist to ${runName}`);
+    onError: (e) => {
+      toast.error(
+        <span>
+          <span className="font-bold">Failed to add playlist to {runName}</span>
+          <br />
+          <br />
+          <span className="text-xs font-mono">{e.message}</span>
+        </span>
+      );
     },
   });
 

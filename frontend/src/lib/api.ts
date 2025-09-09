@@ -13,5 +13,11 @@ export const addPlaylistToLatestRun = async () => {
       method: "POST",
     })
   );
+  
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+  }
+  
   return response;
 };

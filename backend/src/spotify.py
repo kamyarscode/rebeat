@@ -11,6 +11,7 @@ from src.db import Token
 from time_utils import iso_to_unix
 from typing import List
 from datetime import datetime, timedelta
+from fastapi import HTTPException
 
 load_dotenv()
 
@@ -301,6 +302,17 @@ def build_playlist(
     song_ids = get_recently_played_using_time(
         before=end_time, start_time=start_time, token=token
     )
+
+    # Check if there are no songs to add to the run
+    if not song_ids:
+        print(
+            "No songs were played during this run. Make sure you were listening to music on Spotify during your activity.",
+            flush=True,
+        )
+        raise HTTPException(
+            status_code=400,
+            detail="No songs were played during this run. Make sure you were listening to music on Spotify during your activity.",
+        )
 
     # Create a new playlist with the provided details
     playlist_id = create_playlist(
