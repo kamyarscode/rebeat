@@ -1,7 +1,6 @@
-import time
 from dateutil import parser
 import math
-import datetime
+from datetime import datetime, timezone
 
 
 """Converts an ISO 8601 formatted string to a Unix timestamp (milliseconds since epoch).
@@ -12,11 +11,13 @@ Args:
 Returns:
     The Unix timestamp as a float.
 """
-def iso_to_unix(iso_string):
 
-    dt_object = parser.parse(iso_string)
-    timestamp = time.mktime(dt_object.timetuple())
-    return timestamp * 1000  # Convert to milliseconds
+
+def iso_to_unix(iso_string: str) -> int:
+    dt = parser.isoparse(iso_string)  # preserves tz if present
+    if dt.tzinfo is None:  # assume UTC if naive
+        dt = dt.replace(tzinfo=timezone.utc)
+    return int(dt.timestamp() * 1000)
 
 
 # Time comes in from Strava.
@@ -27,7 +28,6 @@ def get_time():
 # comes in in minutes
 # convert to A Unix timestamp in milliseconds for spotify.
 def normalize_time(start, end):
-
     normalized = map(lambda x: x * 1000 * 60, [start, end])
     return list(normalized)
 
@@ -57,7 +57,6 @@ def datetime_to_iso_test():
 
     # Return truncated epoch time in milliseconds.
     return truncated_start_time_iso, end_time
-
 
 
 # Compare two dates in ISO 8601 format and return True if the first date is before the second date.
