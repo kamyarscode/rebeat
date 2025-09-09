@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import os
 from urllib.parse import urlencode
 from src.db_ops import store_token
@@ -10,7 +10,6 @@ from sqlalchemy.orm import Session
 from src.db import Token
 from time_utils import iso_to_unix
 from spotify import build_playlist
-
 
 load_dotenv()
 
@@ -127,11 +126,14 @@ def add_playlist_to_latest_run(user_id: int, spotify_user_id: str, db: Session):
     latest_run_id = latest_run["id"]
     latest_run_description = latest_run["description"]
 
-    # use latest run elapsed time (seconds) to create run_end_time UTC ISO string
-    start_time_iso_utc = latest_run["start_date"]
-    start_date_milli = iso_to_unix(start_time_iso_utc)
-    end_time_milli = start_date_milli + latest_run["elapsed_time"] * 1000
-    end_time_iso_utc = datetime.fromtimestamp(end_time_milli / 1000).isoformat()
+    # Parse start (robust to 'Z')
+    start_dt_utc = datetime.fromisoformat(
+        latest_run["start_date"].replace("Z", "+00:00")
+    ).astimezone(timezone.utc)
+    end_dt_utc = start_dt_utc + timedelta(seconds=latest_run["elapsed_time"])
+    start_time_iso_utc = start_dt_utc.isoformat().replace("+00:00", "Z")
+    end_time_iso_utc = end_dt_utc.isoformat().replace("+00:00", "Z")
+
     playlist_url = build_playlist(
         user_id=user_id,
         spotify_user_id=spotify_user_id,
