@@ -34,21 +34,15 @@ cd rebeat
 # Link to the Vercel project and pull the backend secrets into backend/.env
 vercel link
 vercel env pull backend/.env
+
+# Point the backend at the local database instead of production Neon.
+# Every pull restores the production value, so redo this after re-pulling.
+echo 'DATABASE_URL=postgresql://postgres:password@localhost:5432/rebeat' >> backend/.env
 ```
 
 That covers the backend. The frontend needs one variable of its own — both
 one-time setups are below. After that, `./dev.sh` runs the two servers together
 (it does not start the database).
-
-> [!NOTE] Local database
-> The pulled `DATABASE_URL` points at the production Neon database. To use the
-> local container instead, replace it in `backend/.env`:
->
-> ```sh
-> DATABASE_URL=postgresql://postgres:password@localhost:5432/rebeat
-> ```
->
-> Every pull restores the production value, so redo this after re-pulling.
 
 ## 🌐 Frontend
 
