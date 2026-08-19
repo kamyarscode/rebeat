@@ -19,7 +19,7 @@ class Athlete(BaseModel):
     created_at: datetime
     updated_at: datetime
     badge_type_id: int
-    weight: float
+    weight: Optional[float] = None
     profile_medium: str
     profile: str
     friend: Optional[bool] = None

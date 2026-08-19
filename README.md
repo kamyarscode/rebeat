@@ -6,7 +6,7 @@
 
 Turn your runs into playlists you can revisit right from Strava. Connect your accounts to get started.
 
-Live at [rebeat.onrender.com](https://rebeat.onrender.com)
+Live at [rebeat.cutaiar.io](https://rebeat.cutaiar.io) (deployed on Vercel; previously on Render)
 
 # 📕 Table of Contents
 

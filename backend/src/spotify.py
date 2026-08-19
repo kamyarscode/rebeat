@@ -19,7 +19,7 @@ base_url = os.getenv("BASE_URL")
 
 spotify_client_id = os.getenv("CLIENT_ID")
 spotify_client_secret = os.getenv("CLIENT_SECRET")
-spotify_redirect_uri = f"{base_url}/spotify/callback"
+spotify_redirect_uri = f"{base_url}/api/spotify/callback"
 SPOTIFY_ACCESS_TOKEN_URL = "https://accounts.spotify.com/api/token"
 
 
@@ -206,6 +206,7 @@ def get_recently_played_using_time(
     SPOTIFY_RECENTLY_PLAYED_URL = "https://api.spotify.com/v1/me/player/recently-played"
     recently_played_song_names = []
     recently_played_song_id = []
+    print(before, start_time, flush=True)
     # TODO: Add docs here to explain "before" later
     params = {"before": before}
 

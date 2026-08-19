@@ -5,8 +5,9 @@ from src.strava import (
     get_latest_run,
 )
 from src.helpers import decode_state
+import logging
 from fastapi import FastAPI, Request, Depends
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from src.db_ops import find_or_create_user, store_token
@@ -28,6 +29,13 @@ FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 app = FastAPI()
 
+
+@app.exception_handler(Exception)
+async def _log_unhandled(request: Request, exc: Exception):
+    logging.exception("Unhandled error on %s %s", request.method, request.url.path)
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -43,14 +51,14 @@ def redirect_with_error(error: str):
 
 
 # Root route
-@app.get("/")
+@app.get("/api")
 async def root():
     return {"message": "Welcome to Rebeat"}
 
 
 # Protected endpoint to test authentication
 # Returns the current authenticated user from the JWT token present in the request
-@app.get("/me")
+@app.get("/api/me")
 def get_current_user_info(current_user: User = Depends(get_current_user)):
     return current_user
 
@@ -59,7 +67,7 @@ def get_current_user_info(current_user: User = Depends(get_current_user)):
 # More info at: https://developer.spotify.com/documentation/web-api/tutorials/code-flow
 # If there's a token in the request, the caller claims to be an existing rebeat user
 # and we'll use that token to link the spotify auth to the this user
-@app.get("/spotify/login")
+@app.get("/api/spotify/login")
 def spotify_login(request: Request):
     rebeat_jwt = request.query_params.get("token")
     spotify_url = build_spotify_login_url(token=rebeat_jwt)
@@ -67,7 +75,7 @@ def spotify_login(request: Request):
 
 
 # Receives the code and state from spotify, and then exchanges the code for an access token
-@app.get("/spotify/callback")
+@app.get("/api/spotify/callback")
 async def spotify_callback(request: Request, db: Session = Depends(get_db)):
     code: str | None = request.query_params.get("code")
     state: str | None = request.query_params.get("state")
@@ -136,7 +144,7 @@ async def spotify_callback(request: Request, db: Session = Depends(get_db)):
 
 # Redirects the user to Strava's OAuth authorization page.
 # Includes a rebeat jwt as state to link the strava auth to the user
-@app.get("/strava/login")
+@app.get("/api/strava/login")
 def strava_login(request: Request):
     rebeat_jwt = request.query_params.get("token")
     strava_auth_url = build_strava_auth_url(token=rebeat_jwt)
@@ -146,7 +154,7 @@ def strava_login(request: Request):
 # A Strava auth flow redirects us back here with a code in the URL
 # We can exchange the code for an access token and do what we will with it.
 # We can then either create or update a user, store their strava tokens, and redirect to the frontend with a JWT
-@app.get("/strava/callback")
+@app.get("/api/strava/callback")
 def strava_callback(request: Request, db: Session = Depends(get_db)):
     code = request.query_params.get("code")
     state = request.query_params.get("state")
@@ -190,14 +198,14 @@ def strava_callback(request: Request, db: Session = Depends(get_db)):
     return RedirectResponse(url=f"{FRONTEND_URL}?token={rebeat_jwt}")
 
 
-@app.get("/latest")
+@app.get("/api/latest")
 def latest_run(
     current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     return get_latest_run(current_user.id, db)
 
 
-@app.post("/latest")
+@app.post("/api/latest")
 def add_to_latest_run(
     current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
