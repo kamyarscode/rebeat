@@ -39,20 +39,20 @@ vercel env pull backend/.env
 Then do the one-time frontend and backend setup below. After that, `./dev.sh`
 runs both together.
 
-> [!NOTE] Local overrides
-> Vercel's `development` values point at **production** — `BASE_URL` and
-> `FRONTEND_URL` are `rebeat.cutaiar.io`, and `DATABASE_URL` is the production
-> Neon database. After pulling, edit `backend/.env`:
+> [!NOTE] Local database
+> The pulled `DATABASE_URL` points at the production Neon database and takes
+> precedence if set. To use the local container instead, comment it out and add
+> the values docker-compose expects:
 >
 > ```sh
-> BASE_URL=http://localhost:8000
-> FRONTEND_URL=http://localhost:5173
+> DB_USER=postgres
+> DB_PASSWORD=password
+> DB_HOST=localhost
+> DB_PORT=5432
+> DB_NAME=rebeat
 > ```
 >
-> `DATABASE_URL` takes precedence if set, so to use the local container below,
-> comment it out and set `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`, and
-> `DB_NAME` instead (docker-compose reads those too). Leave it alone to develop
-> against the production database.
+> Later pulls keep variables that only exist locally, so this is a one-time step.
 
 ## 🌐 Frontend
 
