@@ -9,32 +9,21 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session, relationship
-from sqlalchemy_utils import database_exists, create_database
 import os
 from dotenv import load_dotenv
 from datetime import datetime
 
 load_dotenv()
 
-# Database connection setup
-
-
-def get_engine(user, password, host, port, db):
-    DATABASE_URL = f"postgresql://{user}:{password}@{host}:{port}/{db}"
-    if not database_exists(DATABASE_URL):
-        create_database(DATABASE_URL)
-    engine = create_engine(DATABASE_URL, pool_size=50, echo=False)
-    return engine
-
 
 def get_engine_from_env():
-    return get_engine(
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        host=os.getenv("DB_HOST"),
-        port=os.getenv("DB_PORT"),
-        db=os.getenv("DB_NAME"),
-    )
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        database_url = (
+            f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}"
+            f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
+        )
+    return create_engine(database_url, pool_size=5, max_overflow=5, pool_pre_ping=True, echo=False)
 
 
 # Create engine and session factory
