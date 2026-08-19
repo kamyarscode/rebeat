@@ -6,6 +6,7 @@ from src.strava_models import RefreshStravaAccessTokenResponse, StravaAuthRespon
 from src.helpers import build_state
 from dotenv import load_dotenv
 from requests import post, get, put
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from src.db import Token
 from time_utils import iso_to_unix
@@ -93,6 +94,16 @@ def get_strava_access_token_from_db(user_id: int, db: Session):
     return token.access_token
 
 
+def compose_description(existing: str | None, playlist_url: str) -> str:
+    """Append the playlist link to an activity description.
+
+    Strava's description is nullable, so guard against writing a literal "None"
+    or a pair of leading blank lines onto an activity that had no description.
+    """
+    existing = (existing or "").rstrip()
+    return f"{existing}\n\n{playlist_url}" if existing else playlist_url
+
+
 def get_latest_run(user_id: int, db: Session):
     access_token = get_strava_access_token_from_db(user_id, db)
     query_params = {
@@ -105,10 +116,32 @@ def get_latest_run(user_id: int, db: Session):
         f"{STRAVA_API_URL}/athlete/activities",
         params=query_params,
         headers=headers,
-    ).json()
-    id = response[0]["id"]
+    )
+
+    # Check before indexing: on a non-200 the body is an error object, and
+    # response[0] would raise KeyError: 0 rather than saying what went wrong.
+    if response.status_code != 200:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Strava returned {response.status_code} when listing your activities.",
+        )
+
+    activities = response.json()
+    if not activities:
+        raise HTTPException(
+            status_code=404,
+            detail="You don't have any Strava activities yet. Record one and try again.",
+        )
+
+    id = activities[0]["id"]
     full_activity_url = f"{STRAVA_API_URL}/activities/{id}"
-    activity_response = get(full_activity_url, headers=headers).json()
+    activity_detail = get(full_activity_url, headers=headers)
+    if activity_detail.status_code != 200:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Strava returned {activity_detail.status_code} when fetching your latest activity.",
+        )
+    activity_response = activity_detail.json()
     return {
         "id": activity_response["id"],
         "name": activity_response["name"],
@@ -146,7 +179,7 @@ def add_playlist_to_latest_run(user_id: int, spotify_user_id: str, db: Session):
 
     access_token = get_strava_access_token_from_db(user_id, db)
     body = {
-        "description": f"{latest_run_description}\n\n{playlist_url}",
+        "description": compose_description(latest_run_description, playlist_url),
     }
     headers = {
         "Authorization": f"Bearer {access_token}",
