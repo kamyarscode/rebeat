@@ -32,3 +32,12 @@ dependencies = [
 ]
 
 # dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
