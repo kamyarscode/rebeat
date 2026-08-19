@@ -5,8 +5,9 @@ from src.strava import (
     get_latest_run,
 )
 from src.helpers import decode_state
+import logging
 from fastapi import FastAPI, Request, Depends
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from src.db_ops import find_or_create_user, store_token
@@ -27,6 +28,13 @@ FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 
 app = FastAPI()
+
+
+@app.exception_handler(Exception)
+async def _log_unhandled(request: Request, exc: Exception):
+    logging.exception("Unhandled error on %s %s", request.method, request.url.path)
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+
 
 # Add CORS middleware
 app.add_middleware(

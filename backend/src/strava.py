@@ -19,7 +19,7 @@ STRAVA_CLIENT_ID = os.getenv("STRAVA_CLIENT_ID")
 STRAVA_CLIENT_SECRET = os.getenv("STRAVA_CLIENT_SECRET")
 STRAVA_SCOPE = "activity:read_all,activity:write"
 
-STRAVA_REDIRECT_URI = f"{BASE_URL}/strava/callback"
+STRAVA_REDIRECT_URI = f"{BASE_URL}/api/strava/callback"
 STRAVA_AUTH_URL = "https://www.strava.com/oauth/authorize"
 STRAVA_ACCESS_TOKEN_URL = "https://www.strava.com/oauth/token"
 STRAVA_API_URL = "https://www.strava.com/api/v3"
