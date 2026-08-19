@@ -87,6 +87,48 @@ Leaning (1) for correctness with (2) as a possible reconciliation pass. Undecide
 - Strava `/athlete/activities` has **no** server-side type filter — only
   `before`, `after`, `page`, `per_page`.
 
+## Deferred: simplify the Vercel deployment
+
+Current shape: `api/[[...path]].py` is a shim that `sys.path`-hacks its way to
+`backend/app.py`, plus two rewrites in `vercel.json`.
+
+**Renaming `backend/` to `api/` does not help — it breaks things.** Without a
+framework preset, every `.py` under `/api` becomes its own function served at
+its file path, so `api/src/db.py` would be an endpoint at `/api/src/db`, as
+would every file in `api/tests/`. Internals addressable over HTTP, functions
+wasted, most without a top-level `app`/`handler`.
+
+**The rewrites are load-bearing, not cruft.** The `[[...path]]` bracket syntax
+is a Next.js convention; Vercel's Python file-based routing serves each file at
+its literal path, so that shim is otherwise only reachable at the literal URL
+`/api/[[...path]]`. FastAPI's routes are already declared as `/api/...`, so the
+function receives the full path and matches directly — no prefix stripping.
+
+**The real simplification** is the FastAPI framework preset, which takes
+precedence over file-based functions and makes the app handle all routing:
+
+```toml
+# backend/pyproject.toml
+[tool.vercel]
+entrypoint = "backend.app:app"
+```
+
+That deletes the shim, the `sys.path` hack, and both rewrites. The catch: the
+preset routes *every* request to FastAPI, so the Vite frontend needs a new home
+— either `app.frontend("/", directory="dist")` (Vercel promotes to the CDN at
+build time) or [Services](https://vercel.com/docs/services), Vercel's documented
+answer for a Python backend and a frontend in one project.
+
+**Deliberately deferred.** The current setup works and is ~10 lines of config.
+Migrating changes deployment topology and touches the OAuth redirect URIs, which
+are the thing that breaks loudly and blocks signups. Do it when the `sys.path`
+hack actually hurts — plausibly when the webhook adds a second entrypoint — and
+do it behind a preview deploy.
+
+Related: `requirements.txt` duplicates the dependencies in
+`backend/pyproject.toml` and can drift. The framework preset would make
+pyproject the single source.
+
 ## Also outstanding
 
 - **The happy path has never run in production.** Only the 410 has been seen
