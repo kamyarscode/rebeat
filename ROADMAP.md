@@ -15,9 +15,9 @@ after upload keeps every activity inside Spotify's 50-track buffer, so
 
 | PR | What |
 |---|---|
-| [#2](https://github.com/kamyarscode/rebeat/pull/2) | History horizon: distinguish "no songs played" from "run too old to know". Also fixed the ISO-string-as-`before` cursor, the missing `limit` (capped at 20, not 50), the absent upper bound, track ordering, and window padding |
-| [#3](https://github.com/kamyarscode/rebeat/pull/3) | Clean 404/502 instead of `IndexError`/`KeyError: 0`; `compose_description` stops writing literal `"None"` onto activities |
-| [#4](https://github.com/kamyarscode/rebeat/pull/4) | Remove dead `with_auth_headers`/`AUTH_TOKEN`; fix README setup commands that never worked |
+| [#2](https://github.com/Cutaiar/rebeat/pull/2) | History horizon: distinguish "no songs played" from "run too old to know". Also fixed the ISO-string-as-`before` cursor, the missing `limit` (capped at 20, not 50), the absent upper bound, track ordering, and window padding |
+| [#3](https://github.com/Cutaiar/rebeat/pull/3) | Clean 404/502 instead of `IndexError`/`KeyError: 0`; `compose_description` stops writing literal `"None"` onto activities |
+| [#4](https://github.com/Cutaiar/rebeat/pull/4) | Remove dead `with_auth_headers`/`AUTH_TOKEN`; fix README setup commands that never worked |
 
 Time handling is now uniformly UTC milliseconds end to end. **No timing or
 unit-conversion bugs remain.**
@@ -137,3 +137,23 @@ pyproject the single source.
 - Deliberately deferred: frontend eligibility gating (judged over-engineering),
   activity-type filtering (works fine on rides), supporting >50 songs (a hard
   Spotify limit).
+
+## Ideas
+
+Moved out of the README's TODO list. Unscheduled, roughly in the order they'd be
+worth doing:
+
+- **Show recent activities and whether they're enhanced**, with a button to do
+  it. Blocked on the open design question above — it needs the same
+  "which activities are already done" answer the webhook does.
+- **Generate a playlist cover image** from the run and its songs.
+- **Organize playlists under a folder** rather than loose in the library.
+- **Toggle between a private and public description** as a user preference.
+- **Map of when and where each song played**, from the activity's GPS stream.
+- **Use uv** instead of venv + pip.
+
+The README also listed supporting runs longer than ~100 minutes / more than 50
+songs; that's the hard Spotify limit recorded under *Also outstanding*. The
+three items it had checked off — track ordering, the empty-description
+newlines, and surfacing "no songs during the run" — are the PR #2 and #3 rows in
+*Done*.

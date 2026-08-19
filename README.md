@@ -6,27 +6,53 @@
 
 Turn your runs into playlists you can revisit right from Strava. Connect your accounts to get started.
 
-Live at [rebeat.cutaiar.io](https://rebeat.cutaiar.io) (deployed on Vercel; previously on Render)
+Live at [rebeat.cutaiar.io](https://rebeat.cutaiar.io)
 
 # 📕 Table of Contents
 
-[Quick Start](#-quick-start)
-[Frontend](#frontend)  
-[Backend](#backend)  
-[References](#references)  
-[TODO](#to-do)
+[Quick Start](#-quick-start)  
+[Frontend](#-frontend)  
+[Backend](#-backend)  
+[Deployment](#-deployment)  
+[References](#-references)  
+[Roadmap](ROADMAP.md)
 
 ## 🚀 Quick Start
 
-You'll need docker, python, and bun.
+You'll need docker, python, bun, and the vercel cli.
 
 ```sh
-# Clone the repo
-git clone https://github.com/kamyarscode/rebeat.git
+# Prerequisites
+brew install vercel
+brew install oven-sh/bun/bun
+# install python and docker your way
 
-# Run the backend and frontend concurrently
-./dev.sh
+# Clone
+git clone https://github.com/Cutaiar/rebeat.git
+cd rebeat
+
+# Link to the Vercel project and pull the backend secrets into backend/.env
+vercel link
+vercel env pull backend/.env
 ```
+
+Then do the one-time frontend and backend setup below. After that, `./dev.sh`
+runs both together.
+
+> [!NOTE] Local overrides
+> Vercel's `development` values point at **production** — `BASE_URL` and
+> `FRONTEND_URL` are `rebeat.cutaiar.io`, and `DATABASE_URL` is the production
+> Neon database. After pulling, edit `backend/.env`:
+>
+> ```sh
+> BASE_URL=http://localhost:8000
+> FRONTEND_URL=http://localhost:5173
+> ```
+>
+> `DATABASE_URL` takes precedence if set, so to use the local container below,
+> comment it out and set `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`, and
+> `DB_NAME` instead (docker-compose reads those too). Leave it alone to develop
+> against the production database.
 
 ## 🌐 Frontend
 
@@ -35,7 +61,7 @@ Vite + React + TypeScript just to send you to the auth flow and look pretty.
 ```bash
 cd frontend
 
-# Copy the example env and update with the right values
+# VITE_API_URL=http://localhost:8000 for local dev
 cp example.env .env
 
 # install deps and run dev server
@@ -48,27 +74,16 @@ bun run dev
 Does all the actual work with auth flows, callbacks, db storage, creating playlists, and editing activities.
 
 ```bash
-
-
-# Navigate to the backend directory
 cd ./backend
 
-# Copy the example env and update with the right values
-cp .example.env .env
-
-# Create venv
-python -m venv .rebeat
-
-# Activate venv (Windows)
-.\.rebeat\Scripts\activate
-# OR Activate venv (Linux/MacOS)
+# Create and activate venv (Linux/macOS; use .\.rebeat\Scripts\activate on Windows)
+python3 -m venv .rebeat
 source .rebeat/bin/activate
 
 # Install project in dev mode to see changes
 pip install -e .
 
-# Pull and run a local postgres container
-# (or skip this and point DATABASE_URL at a hosted database instead)
+# Pull and run a local postgres container (skip if using a hosted DATABASE_URL)
 docker-compose -p rebeat up -d
 
 # Start the server
@@ -83,9 +98,15 @@ pytest
 > If using VsCode, make sure you set the right environment.
 > `CMD + SHIFT + P` -> `Python: Select Interpreter` -> `.rebeat/bin/python`
 
-> [!NOTE] Database connection
-> `DATABASE_URL` takes precedence if set; otherwise the `DB_*` variables are
-> used to build a connection string for the local container above.
+## 🚢 Deployment
+
+Deployed on Vercel (previously on Render). Pushes to `main` deploy to
+production.
+
+`api/[[...path]].py` is a shim that hands every `/api/*` request to the FastAPI
+app in `backend/`, wired up by the rewrites in `vercel.json`. Root
+`requirements.txt` is what Vercel installs. See [ROADMAP.md](ROADMAP.md) for why
+it is shaped this way.
 
 ## 🔎 References
 
@@ -93,16 +114,3 @@ pytest
 - [Spotify API Docs](https://developer.spotify.com/documentation/web-api)
 - [Strava WebHooks](https://developers.strava.com/docs/webhooks/)
 - [Strava API](https://developers.strava.com/docs/reference/)
-
-## ✅ TODO
-
-- [ ] Use uv
-- [x] If there's no content to create newlines after, don't
-- [ ] Generate an image for the playlist based on the run and songs?
-- [x] Reverse the order of songs added so that the first songs in the playlist are the first ones on the run
-- [x] Throw if there no no songs during the run and surface on frontend
-- [ ] Organize playlists under a folder
-- [ ] UI showing the latest activities, if they've been enhanced, and a button to do so
-- [ ] Add way to support workouts longer than 100 minutes / more than 50 songs
-- [ ] Add a preference toggle between private/public description
-- [ ] Add map of when/where each song is played
