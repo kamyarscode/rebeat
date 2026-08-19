@@ -93,10 +93,10 @@ python ./app.py
 ## ✅ TODO
 
 - [ ] Use uv
-- [ ] If there's no content to create newlines after, don't
+- [x] If there's no content to create newlines after, don't
 - [ ] Generate an image for the playlist based on the run and songs?
-- [ ] Reverse the order of songs added so that the first songs in the playlist are the first ones on the run
-- [ ] Throw if there no no songs during the run and surface on frontend
+- [x] Reverse the order of songs added so that the first songs in the playlist are the first ones on the run
+- [x] Throw if there no no songs during the run and surface on frontend
 - [ ] Organize playlists under a folder
 - [ ] UI showing the latest activities, if they've been enhanced, and a button to do so
 - [ ] Add way to support workouts longer than 100 minutes / more than 50 songs
