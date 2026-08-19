@@ -138,6 +138,24 @@ pyproject the single source.
   activity-type filtering (works fine on rides), supporting >50 songs (a hard
   Spotify limit).
 
+## Deferred: keep local env overrides across pulls
+
+`vercel env pull backend/.env` overwrites `DATABASE_URL` with the production
+Neon string every time, so pointing local dev at the container is a one-line
+edit you redo after each pull. The README documents it; nothing enforces it, and
+forgetting means silently developing against production data.
+
+The fix is a second file the pull never touches: load `.env` (pulled,
+disposable) and then `backend/.env.local` (yours) with `override=True`. A local
+`DATABASE_URL` would then survive every pull.
+
+The cost is that `load_dotenv()` is called at import time in four places —
+`app.py`, `src/db.py`, `src/spotify.py`, `src/strava.py` — each reading
+module-level globals immediately after. Adding an override pass means
+centralizing env loading into one module that is imported before any of them,
+and import order is currently implicit. Worth doing when the manual re-edit
+actually bites, or alongside any other change that touches module-level config.
+
 ## Ideas
 
 Moved out of the README's TODO list. Unscheduled, roughly in the order they'd be

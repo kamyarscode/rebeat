@@ -36,23 +36,19 @@ vercel link
 vercel env pull backend/.env
 ```
 
-Then do the one-time frontend and backend setup below. After that, `./dev.sh`
-runs both together.
+That covers the backend. The frontend needs one variable of its own — both
+one-time setups are below. After that, `./dev.sh` runs the two servers together
+(it does not start the database).
 
 > [!NOTE] Local database
-> The pulled `DATABASE_URL` points at the production Neon database and takes
-> precedence if set. To use the local container instead, comment it out and add
-> the values docker-compose expects:
+> The pulled `DATABASE_URL` points at the production Neon database. To use the
+> local container instead, replace it in `backend/.env`:
 >
 > ```sh
-> DB_USER=postgres
-> DB_PASSWORD=password
-> DB_HOST=localhost
-> DB_PORT=5432
-> DB_NAME=rebeat
+> DATABASE_URL=postgresql://postgres:password@localhost:5432/rebeat
 > ```
 >
-> Later pulls keep variables that only exist locally, so this is a one-time step.
+> Every pull restores the production value, so redo this after re-pulling.
 
 ## 🌐 Frontend
 

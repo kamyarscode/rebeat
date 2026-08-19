@@ -19,9 +19,10 @@ load_dotenv()
 def get_engine_from_env():
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
-        database_url = (
-            f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}"
-            f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
+        raise RuntimeError(
+            "DATABASE_URL is not set. Run `vercel env pull backend/.env` for the "
+            "hosted database, or point it at the local container: "
+            "postgresql://postgres:password@localhost:5432/rebeat"
         )
     return create_engine(database_url, pool_size=5, max_overflow=5, pool_pre_ping=True, echo=False)
 
