@@ -9,8 +9,12 @@ from src.helpers import build_state
 from sqlalchemy.orm import Session
 from src.db import Token
 from time_utils import iso_to_unix
-from typing import List
-from datetime import datetime, timedelta
+from listening_history import (
+    HISTORY_CAPACITY,
+    Status,
+    select_tracks_in_window,
+)
+from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
 
 load_dotenv()
@@ -25,6 +29,14 @@ SPOTIFY_ACCESS_TOKEN_URL = "https://accounts.spotify.com/api/token"
 
 def build_headers(token: str):
     return {"Authorization": f"Bearer {token}"}
+
+
+def _format_horizon(horizon_ms: int) -> str:
+    """Render the history horizon for a user-facing message."""
+    return (
+        datetime.fromtimestamp(horizon_ms / 1000, timezone.utc)
+        .strftime("%b %-d at %H:%M UTC")
+    )
 
 
 # Helper to exchange the code for an access token via spotify's API
@@ -200,39 +212,27 @@ Returns:
 """
 
 
-def get_recently_played_using_time(
-    before: str, start_time: str, token: str
-) -> List[str]:
-    SPOTIFY_RECENTLY_PLAYED_URL = "https://api.spotify.com/v1/me/player/recently-played"
-    recently_played_song_names = []
-    recently_played_song_id = []
-    print(before, start_time, flush=True)
-    # TODO: Add docs here to explain "before" later
-    params = {"before": before}
+def get_recently_played(token: str) -> list:
+    """Fetch the whole recently-played buffer, newest first.
 
-    # Make API request to Spotify here.
+    No `before`/`after` cursor: the buffer only ever holds HISTORY_CAPACITY
+    items and the cursors cannot page outside it, so asking for all of it and
+    filtering locally is both simpler and strictly more informative -- it gives
+    us the horizon for free. Note that the response's `next` field is non-null
+    even when following it yields nothing, so it is not a usable signal.
+    """
+    SPOTIFY_RECENTLY_PLAYED_URL = "https://api.spotify.com/v1/me/player/recently-played"
+
     response = requests.get(
-        SPOTIFY_RECENTLY_PLAYED_URL, headers=build_headers(token), params=params
+        SPOTIFY_RECENTLY_PLAYED_URL,
+        headers=build_headers(token),
+        params={"limit": HISTORY_CAPACITY},
     )
 
     if response.status_code != 200:
         raise Exception(response.status_code, response.json())
 
-    # Get response object.
-    response_json = response.json()
-
-    for item in response_json["items"]:
-        # convert both times to format for comparison.
-        played_at_unix_milliseconds = iso_to_unix(item["played_at"])
-        start_time_unix_milliseconds = iso_to_unix(start_time)
-
-        # logic to check if song played is after start time.
-        if played_at_unix_milliseconds > start_time_unix_milliseconds:
-            recently_played_song_id.append(item["track"]["id"])
-            recently_played_song_names.append(item["track"]["name"])
-
-    # Return list of song names for testing, return id for actual use.
-    return recently_played_song_id
+    return response.json()["items"]
 
 
 def add_songs(
@@ -299,20 +299,44 @@ def build_playlist(
 
     token = get_spotify_access_token_from_db(user_id, db)
 
-    # Get the recently played songs using the provided time range
-    song_ids = get_recently_played_using_time(
-        before=end_time, start_time=start_time, token=token
+    # Pull the whole history buffer and work out what it can tell us about this
+    # particular run. Distinct statuses matter here: "you played nothing" and
+    # "we can no longer see that far back" are very different messages.
+    selection = select_tracks_in_window(
+        items=get_recently_played(token),
+        start_ms=iso_to_unix(start_time),
+        end_ms=iso_to_unix(end_time),
     )
+    print(f"{selection.status.value}: {len(selection.track_ids)} tracks", flush=True)
 
-    # Check if there are no songs to add to the run
-    if not song_ids:
-        print(
-            "No songs were played during this run. Make sure you were listening to music on Spotify during your activity.",
-            flush=True,
+    if selection.status is Status.HORIZON_EXCEEDED:
+        raise HTTPException(
+            status_code=410,
+            detail=(
+                f"This run is older than your Spotify listening history, which only "
+                f"reaches back to {_format_horizon(selection.horizon_ms)}. Spotify "
+                f"keeps just your last {HISTORY_CAPACITY} tracks, so we can't tell "
+                f"what you were playing during this run."
+            ),
         )
+
+    if not selection.is_playable:
         raise HTTPException(
             status_code=400,
-            detail="No songs were played during this run. Make sure you were listening to music on Spotify during your activity.",
+            detail=(
+                "No songs were played during this run. Make sure you were listening "
+                "to music on Spotify during your activity."
+            ),
+        )
+
+    song_ids = selection.track_ids
+
+    # Say so rather than quietly handing over a playlist that is missing the
+    # start of the run.
+    if selection.status is Status.PARTIAL:
+        playlist_description += (
+            " (Partial: Spotify had already dropped the earliest tracks of this run"
+            " from your listening history.)"
         )
 
     # Create a new playlist with the provided details
