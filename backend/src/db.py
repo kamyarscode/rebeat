@@ -8,7 +8,7 @@ from sqlalchemy import (
     CheckConstraint,
 )
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session, relationship
+from sqlalchemy.orm import sessionmaker, relationship
 import os
 from dotenv import load_dotenv
 from datetime import datetime

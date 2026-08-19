@@ -36,6 +36,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
+    "pyflakes>=3.0",
 ]
 
 [tool.pytest.ini_options]

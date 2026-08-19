@@ -9,7 +9,6 @@ from requests import post, get, put
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from src.db import Token
-from time_utils import iso_to_unix
 from spotify import build_playlist
 
 load_dotenv()
